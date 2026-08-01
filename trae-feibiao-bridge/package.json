@@ -1,0 +1,83 @@
+{
+  "name": "feibiao-bridge",
+  "displayName": "飞标 Bridge",
+  "description": "接收飞标浏览器插件推送的批注交付包,写入工作区并尝试注入 AI 对话框。",
+  "version": "1.2.0",
+  "publisher": "feibiao",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://example.com/feibiao/feibiao-bridge.git"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "feibiao.bridge.showStatus",
+        "title": "飞标 Bridge: 查看桥接状态"
+      },
+      {
+        "command": "feibiao.bridge.restart",
+        "title": "飞标 Bridge: 重启本地服务"
+      },
+      {
+        "command": "feibiao.bridge.probeChatCommands",
+        "title": "飞标 Bridge: 探测可用的 AI 会话命令"
+      }
+    ],
+    "configuration": {
+      "title": "飞标 Bridge",
+      "properties": {
+        "feibiao.bridge.port": {
+          "type": "number",
+          "default": 51799,
+          "description": "本地 HTTP 服务监听的固定端口,需与浏览器插件保持一致。"
+        },
+        "feibiao.bridge.token": {
+          "type": "string",
+          "default": "feibiao-local",
+          "description": "简单校验令牌,浏览器插件请求头 X-Feibiao-Token 必须与此一致。"
+        },
+        "feibiao.bridge.deliverDir": {
+          "type": "string",
+          "default": ".feibiao/deliveries",
+          "description": "交付包在工作区中的相对落盘目录(A 兜底)。"
+        },
+        "feibiao.bridge.autoOpen": {
+          "type": "boolean",
+          "default": true,
+          "description": "落盘后是否自动打开 feedback.md。"
+        },
+        "feibiao.bridge.injectChatCommands": {
+          "type": "array",
+          "default": [],
+          "description": "尝试注入 AI 对话框时优先执行的命令 ID 列表(B)。留空则自动探测常见候选。"
+        },
+        "feibiao.bridge.autoPasteAfterFocus": {
+          "type": "boolean",
+          "default": true,
+          "description": "聚焦 AI 会话后是否自动模拟粘贴,把剪贴板内容落进输入框。"
+        },
+        "feibiao.bridge.autoSubmit": {
+          "type": "boolean",
+          "default": true,
+          "description": "填入内容后是否自动提交(执行 workbench.action.chat.submit)。"
+        },
+        "feibiao.bridge.injectDelayMs": {
+          "type": "number",
+          "default": 350,
+          "description": "打开 AI 会话面板后,等待其就绪再粘贴/提交的毫秒数。"
+        }
+      }
+    }
+  }
+}

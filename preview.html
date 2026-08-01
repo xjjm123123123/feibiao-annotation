@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>飞标 1.1.0 交互预览</title>
+  <link rel="stylesheet" href="content.css">
+  <link rel="stylesheet" href="workbench.css">
+  <style>
+    :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: #222126; background: #f6f6fa; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 980px; background: #f6f6fa; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .site-nav { display: flex; align-items: center; justify-content: space-between; height: 66px; padding: 0 52px; background: #fff; border-bottom: 1px solid #e9e8ee; }
+    .brand { display: flex; align-items: center; gap: 9px; color: #29272e; font-size: 17px; font-weight: 760; }
+    .brand-mark { width: 25px; height: 25px; border-radius: 9px 9px 9px 3px; background: #7657ff; position: relative; }
+    .brand-mark::before { content: ""; position: absolute; left: 6px; top: 10px; width: 5px; height: 2px; background: #fff; border-radius: 3px; box-shadow: 8px 0 #fff; }
+    .site-links { display: flex; align-items: center; gap: 26px; color: #77727e; font-size: 13px; }
+    .avatar { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #f0c4c4; color: #7d3f49; font-size: 12px; font-weight: 700; }
+    .page { max-width: 1180px; margin: 0 auto; padding: 68px 52px 90px; }
+    .eyebrow { color: #7657ff; font-size: 12px; font-weight: 750; }
+    h1 { max-width: 720px; margin: 12px 0 16px; font-size: 44px; line-height: 1.14; letter-spacing: 0; }
+    .intro { max-width: 580px; margin: 0; color: #696570; font-size: 16px; line-height: 1.7; }
+    .actions { display: flex; gap: 10px; margin-top: 26px; }
+    .site-button { min-height: 38px; border: 1px solid #dedce5; border-radius: 7px; background: #fff; color: #302e35; padding: 0 14px; font-size: 13px; font-weight: 650; }
+    .site-button.primary { border-color: #7657ff; background: #7657ff; color: #fff; }
+    .report-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 18px; margin-top: 68px; }
+    .report-card { min-height: 238px; padding: 26px; border: 1px solid #e5e3eb; border-radius: 8px; background: #fff; box-shadow: 0 6px 18px rgba(28, 25, 36, .04); }
+    .report-card h2 { margin: 0; color: #2b2930; font-size: 20px; letter-spacing: 0; }
+    .report-card p { max-width: 400px; color: #73707a; font-size: 14px; line-height: 1.7; }
+    .stat { display: flex; align-items: end; gap: 10px; margin-top: 32px; }
+    .stat strong { color: #28262d; font-size: 52px; line-height: 1; letter-spacing: 0; }
+    .stat span { padding-bottom: 7px; color: #78737f; font-size: 13px; }
+    .bars { display: flex; align-items: end; gap: 9px; height: 142px; margin-top: 19px; }
+    .bars i { display: block; width: 28px; border-radius: 4px 4px 2px 2px; background: #d9d1ff; }
+    .bars i:nth-child(1) { height: 42px; }.bars i:nth-child(2) { height: 70px; }.bars i:nth-child(3) { height: 52px; }.bars i:nth-child(4) { height: 104px; background: #7657ff; }.bars i:nth-child(5) { height: 87px; }.bars i:nth-child(6) { height: 122px; }.bars i:nth-child(7) { height: 96px; }
+    .target { transition: outline .14s ease, outline-offset .14s ease; }
+    .target.is-selected { outline: 3px solid rgba(118, 87, 255, .72); outline-offset: 4px; }
+    .pin { position: absolute; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 11px 11px 11px 4px; background: #7657ff; color: #fff; box-shadow: 0 5px 12px rgba(65, 43, 154, .24); opacity: 1; }
+    .pin:not(.orange) { border-radius: 50%; background: var(--brand-purple, #9c5bc8); }.pin:not(.orange) .pin-shape { display: none; }.pin:not(.orange) .pin-symbol { transform: none; }
+    .pin.orange { background: #ed8a41; box-shadow: 0 5px 12px rgba(84, 44, 16, .24); }.pin b { position: absolute; right: -7px; top: -7px; display: grid; min-width: 16px; height: 16px; place-items: center; border: 1px solid #fff; border-radius: 9px; background: #29282d; color: #fff; font-size: 9px; }
+    .pin-title { left: calc(50% + 245px); top: 143px; }.pin-card { left: calc(50% + 116px); top: 478px; }.pin-chart { left: calc(50% + 470px); top: 545px; }
+    .workbar { position: fixed; z-index: 30; top: 22px; left: 50%; display: flex; align-items: center; gap: 4px; min-height: 52px; transform: translateX(-50%); border: 1px solid #e5e2ea; border-radius: 28px; background: rgba(255,255,255,.98); box-shadow: 0 8px 22px rgba(24,22,31,.11); padding: 6px; color: #29282d; }
+    .tool, .grip { display: grid; width: 38px; height: 38px; place-items: center; border: 0; border-radius: 19px; background: transparent; color: inherit; }
+    .tool:hover { background: #f0eef6; }.tool.active { background: #7657ff; color: #fff; }.tool[data-action="shot"]:hover { background: #fff2e8; color: #d77534; }.grip { color: #a19ca9; cursor: grab; }.divider { width: 1px; height: 26px; margin: 0 2px; background: #dedbe4; }.tool svg, .grip svg, .mini svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .agent-count { position: relative; }.agent-count em { position: absolute; top: -3px; right: -2px; display: grid; min-width: 17px; height: 17px; place-items: center; border-radius: 9px; background: #7657ff; color: #fff; font-size: 10px; font-style: normal; font-weight: 800; }
+    .panel { position: fixed; z-index: 20; top: 88px; right: 16px; display: grid; grid-template-rows: auto auto minmax(0,1fr) auto; width: min(380px, calc(100vw - 32px)); height: min(760px, calc(100vh - 104px)); min-width: min(312px, calc(100vw - 16px)); min-height: min(360px, calc(100vh - 16px)); overflow: hidden; border: 1px solid #e5e2ea; border-radius: 12px; background: #fff; box-shadow: 0 12px 28px rgba(24,22,31,.12); }
+    .panel-resize { position: absolute; z-index: 8; display: block; border: 0; background: transparent; padding: 0; pointer-events: auto; }.panel-resize.n { top: 0; right: 16px; left: 16px; height: 7px; cursor: ns-resize; }.panel-resize.e { top: 16px; right: 0; bottom: 16px; width: 7px; cursor: ew-resize; }.panel-resize.s { right: 16px; bottom: 0; left: 16px; height: 7px; cursor: ns-resize; }.panel-resize.w { top: 16px; bottom: 16px; left: 0; width: 7px; cursor: ew-resize; }.panel-resize.ne,.panel-resize.se,.panel-resize.sw,.panel-resize.nw { width: 18px; height: 18px; }.panel-resize.ne { top: 0; right: 0; cursor: nesw-resize; }.panel-resize.se { right: 0; bottom: 0; cursor: nwse-resize; }.panel-resize.sw { bottom: 0; left: 0; cursor: nesw-resize; }.panel-resize.nw { top: 0; left: 0; cursor: nwse-resize; }.panel-resize.se::after { content: ""; position: absolute; right: 5px; bottom: 5px; width: 7px; height: 7px; border-right: 1.5px solid rgba(118,87,255,.32); border-bottom: 1.5px solid rgba(118,87,255,.32); border-radius: 1px; }.panel.is-resizing { user-select: none; }
+    .panel.hidden, .composer.hidden, .agent-modal.hidden, .shot-overlay.hidden, .shot-popover.hidden, .shot-selection.hidden, .shot-drawing.hidden, .shot-viewer.hidden, .shot-focus.hidden { display: none; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; min-height: 54px; padding: 10px 12px; border-bottom: 1px solid #e3e0e8; background: #fdfdff; }
+    .panel-title { display: flex; align-items: center; gap: 8px; color: #29282d; font-size: 15px; font-weight: 750; }.bubble { display: block; width: 20px; height: 20px; object-fit: contain; }.panel-grip { display: grid; width: 25px; height: 28px; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #a19ca9; cursor: grab; padding: 0; }.panel-grip:active { cursor: grabbing; }.panel-grip svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }.panel-actions { display: flex; align-items: center; gap: 3px; }.count { display: grid; min-width: 26px; height: 24px; place-items: center; border-radius: 12px; background: #ebe6ff; color: #7657ff; font-size: 12px; font-weight: 800; }.clear-all.confirm { width: 42px; background: #fff2e8; color: #ed8a41; font-size: 11px; font-weight: 800; }.clear-all:hover:not(:disabled) { background: #fff2e8; color: #ed8a41; }
+    .collab { display: grid; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e3e0e8; background: #fff; }.collab-main { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; align-items: center; }.collab-user { display: grid; min-width: 0; grid-template-columns: 28px minmax(0,1fr); gap: 8px; align-items: center; border: 0; background: transparent; color: #29282d; padding: 0; text-align: left; }.collab-avatar,.room-avatar { display: grid; place-items: center; overflow: hidden; font-weight: 800; line-height: 1; }.collab-avatar { width: 28px; height: 28px; border-radius: 6px; background: #ebe6ff; color: #7657ff; font-size: 12px; }.collab-text { display: grid; min-width: 0; gap: 1px; }.collab-text strong { overflow: hidden; color: #29282d; font-size: 12px; font-weight: 760; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }.collab-text small { overflow: hidden; color: #8d8793; font-size: 10px; font-weight: 520; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }.collab-room { display: grid; grid-template-columns: minmax(0,1fr) 48px; gap: 6px; }.collab-input { min-width: 0; height: 30px; border: 1px solid #e7e4ed; border-radius: 7px; background: #faf9fc; color: #29282d; outline: 0; padding: 0 9px; font-size: 12px; font-weight: 620; }.collab-input:focus { border-color: rgba(118,87,255,.48); box-shadow: 0 0 0 2px rgba(118,87,255,.10); }.collab-join { height: 30px; border: 0; border-radius: 7px; background: #7657ff; color: #fff; padding: 0; font-size: 12px; font-weight: 760; }.collab-members { display: flex; min-height: 22px; align-items: center; justify-content: flex-end; gap: 0; padding-right: 2px; }.room-avatar { width: 22px; height: 22px; border-radius: 5px; background: var(--member, #7657ff); color: #fff; font-size: 9px; box-shadow: 0 0 0 1px rgba(255,255,255,.88); }.room-avatar + .room-avatar { margin-left: -5px; }
+    .mini { display: grid; width: 28px; height: 28px; place-items: center; border: 0; border-radius: 6px; background: transparent; color: #77717f; }.mini:hover, .mini.active { background: #ebe6ff; color: #7657ff; }.mini svg { width: 16px; height: 16px; }
+    .annotation-list { overflow: auto; padding: 10px; }.thread { display: grid; grid-template-columns: 26px minmax(0,1fr) 28px 28px; gap: 6px; margin-bottom: 10px; }.thread-index { display: grid; width: 24px; height: 24px; place-items: center; border-radius: 50%; background: #7657ff; color: #fff; font-size: 11px; font-weight: 800; }.thread-index.shot { background: #ed8a41; }
+    .thread-card { min-width: 0; border: 1px solid #e7e4ed; border-radius: 8px; background: #fff; padding: 10px; text-align: left; }.thread-card:hover { border-color: rgba(118,87,255,.58); }.thread-meta { display: flex; align-items: center; gap: 6px; color: #8b8790; font-size: 11px; }.tag { display: grid; width: 20px; height: 20px; place-items: center; border-radius: 8px 8px 8px 3px; background: #ebe6ff; color: #7657ff; }.tag.shot { background: #fff2e8; color: #ed8a41; }.thread-card p { margin: 9px 0 6px; color: #45424a; font-size: 12px; line-height: 1.55; }.target-label { overflow: hidden; color: #8b8790; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }.shot-thumb { display: block; width: 100%; height: 94px; margin: 10px 0 8px; border: 1px solid #e7e4ed; border-radius: 5px; object-fit: cover; }
+    .panel-foot { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; padding: 10px; border-top: 1px solid #e3e0e8; background: #fdfdff; }.deliver { min-height: 38px; border: 0; border-radius: 7px; background: #7657ff; color: #fff; font-size: 13px; font-weight: 750; }.foot-tools { display: flex; gap: 2px; }.panel-launcher { position: fixed; z-index: 21; top: 88px; right: 16px; display: flex; align-items: center; gap: 8px; min-height: 46px; border: 1px solid rgba(255,255,255,.36); border-radius: 23px; background: #7657ff; box-shadow: 0 10px 24px rgba(52,34,125,.22); color: #fff; padding: 0 12px 0 8px; font-size: 12px; font-weight: 800; }.panel-launcher.hidden { display: none; }.panel-launcher .launcher-bubble { width: 28px; height: 28px; border: 1px solid rgba(255,255,255,.56); border-radius: 10px 10px 10px 4px; position: relative; }.panel-launcher .launcher-bubble::after { content: ""; position: absolute; left: 7px; top: 12px; width: 5px; height: 2px; border-radius: 2px; background: #fff; box-shadow: 8px 0 #fff; }.launcher-count { display: grid; min-width: 20px; height: 20px; place-items: center; border-radius: 10px; background: #fff; color: #7657ff; font-size: 10px; }
+    .composer { position: fixed; z-index: 22; top: 88px; right: 16px; width: 348px; max-height: calc(100vh - 104px); overflow: auto; border: 1px solid #e5e2ea; border-radius: 12px; background: #fff; box-shadow: 0 12px 28px rgba(24,22,31,.12); padding: 12px; }.selected-label { overflow: hidden; margin-bottom: 10px; color: #77717f; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; padding: 3px; border-radius: 7px; background: #f3f1f6; }.tab { min-height: 30px; border: 0; border-radius: 5px; background: transparent; color: #77717f; font-size: 12px; }.tab.active { background: #fff; color: #7657ff; box-shadow: 0 1px 2px rgba(36,29,56,.08); }.comment-area, .style-area { margin-top: 10px; }.style-area.hidden, .comment-area.hidden { display: none; }.composer textarea { width: 100%; min-height: 88px; resize: vertical; border: 1px solid #e7e4ed; border-radius: 6px; color: #29282d; outline: none; padding: 9px 10px; font-size: 13px; line-height: 1.55; }.composer textarea:focus { border-color: #a899ff; box-shadow: 0 0 0 2px rgba(118,87,255,.12); }
+    .style-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 7px; margin-top: 8px; }.style-grid label { display: grid; grid-template-columns: auto minmax(0,1fr); min-height: 32px; align-items: center; gap: 4px; border: 1px solid #e7e4ed; border-radius: 6px; color: #716b7b; padding: 3px 5px; font-size: 11px; }.style-grid input, .style-grid select { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #29282d; font-size: 12px; }.style-grid input[type="color"] { height: 22px; padding: 0; }.style-grid input[type="range"] { accent-color: #7657ff; }
+    .composer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }.save { min-height: 32px; border: 0; border-radius: 6px; background: #7657ff; color: #fff; padding: 0 13px; font-size: 12px; font-weight: 750; }
+    .agent-modal { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; background: rgba(19,18,24,.42); padding: 28px; }.agent-dialog { display: grid; grid-template-rows: auto minmax(0,1fr) auto; width: min(760px, 100%); max-height: min(680px, calc(100vh - 56px)); overflow: hidden; border: 1px solid rgba(255,255,255,.15); border-radius: 8px; background: #29282d; box-shadow: 0 28px 70px rgba(0,0,0,.38); }.agent-head, .agent-foot { display: flex; align-items: center; justify-content: space-between; padding: 12px; }.agent-head { border-bottom: 1px solid rgba(255,255,255,.12); }.format { display: flex; gap: 3px; padding: 3px; border-radius: 7px; background: rgba(255,255,255,.08); }.format button { min-height: 28px; border: 0; border-radius: 5px; background: transparent; color: rgba(255,255,255,.6); padding: 0 10px; font-size: 12px; }.format button.active { background: #7657ff; color: #fff; }.agent-head .mini, .agent-foot .mini { color: rgba(255,255,255,.72); }.markdown { min-height: 0; margin: 0; overflow: auto; background: #201f24; color: #e9e7ee; padding: 18px; font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; }.agent-foot { justify-content: flex-end; gap: 6px; border-top: 1px solid rgba(255,255,255,.12); }.copy { display: grid; width: 40px; height: 34px; place-items: center; border: 0; border-radius: 6px; background: #7657ff; color: #fff; }.copy svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; }
+    .shot-viewer { position: fixed; z-index: 60; inset: 0; display: grid; place-items: center; background: rgba(19,18,24,.54); padding: 28px; }.shot-viewer-panel { width: min(760px, 100%); overflow: hidden; border: 1px solid rgba(255,255,255,.16); border-radius: 8px; background: #29282d; box-shadow: 0 28px 70px rgba(0,0,0,.38); }.shot-viewer-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; color: #f2f0f6; font-size: 13px; font-weight: 700; }.shot-viewer img { display: block; width: 100%; max-height: calc(100vh - 150px); background: #f6f6fa; object-fit: contain; }.shot-focus { position: fixed; z-index: 19; border: 3px solid #7657ff; border-radius: 4px; background: rgba(118,87,255,.12); box-shadow: 0 0 0 4px rgba(118,87,255,.1); pointer-events: none; }
+    .shot-overlay { position: fixed; z-index: 40; inset: 0; background: rgba(27,25,32,.34); cursor: crosshair; }.shot-bar { position: fixed; z-index: 42; top: 88px; left: 16px; display: flex; align-items: center; gap: 6px; min-height: 48px; padding: 6px; border: 1px solid #e5e2ea; border-radius: 10px; background: rgba(255,255,255,.98); box-shadow: 0 10px 24px rgba(24,22,31,.18); color: #29282d; }.shot-label { margin: 0 6px; color: #625d69; font-size: 12px; font-weight: 700; }.shot-button { min-height: 32px; border: 0; border-radius: 6px; background: transparent; color: #625d69; padding: 0 10px; font-size: 12px; }.shot-button:hover, .shot-button.active { background: #ebe6ff; color: #7657ff; }.shot-button.primary { background: #7657ff; color: #fff; }.shot-button:disabled { opacity: .38; cursor: default; }.shot-selection { position: fixed; z-index: 41; border: 2px solid #7657ff; background: rgba(118,87,255,.18); box-shadow: 0 0 0 1px rgba(255,255,255,.62); pointer-events: none; }.shot-drawing { position: fixed; z-index: 41; inset: 0; width: 100vw; height: 100vh; pointer-events: none; }.shot-drawing line, .shot-drawing polyline { fill: none; stroke: #7657ff; stroke-linecap: round; stroke-linejoin: round; stroke-width: 4; filter: drop-shadow(0 1px 1px rgba(0,0,0,.22)); }.shot-popover { position: fixed; z-index: 43; top: 148px; right: 16px; width: 320px; border: 1px solid #e5e2ea; border-radius: 10px; background: #fff; box-shadow: 0 14px 30px rgba(24,22,31,.2); padding: 12px; }.shot-popover textarea { width: 100%; min-height: 84px; resize: vertical; border: 1px solid #e7e4ed; border-radius: 6px; outline: 0; padding: 9px 10px; font-size: 13px; }.shot-popover textarea:focus { border-color: #a899ff; box-shadow: 0 0 0 2px rgba(118,87,255,.12); }.shot-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+    .workbar,.panel,.composer,.shot-bar,.shot-popover { border-color: transparent; }
+    .theme-dark .workbar { border-color: rgba(255,255,255,.08); background: rgba(41,40,45,.98); box-shadow: 0 16px 34px rgba(0,0,0,.34); color: #f0edf5; }.theme-dark .tool { color: #d4cfdb; }.theme-dark .tool.active { background: #a38dff; color: #211d2b; }.theme-dark .agent-count em { background: #a38dff; color: #211d2b; }.theme-dark .grip { color: #807a87; }.theme-dark .tool:hover { background: #3a3841; color: #fff; }.theme-dark .tool[data-action="shot"]:hover { background: #49362a; color: #f3a264; }.theme-dark .divider { background: #4c4853; }
+    .theme-dark .panel { border-color: rgba(255,255,255,.14); background: #29282d; box-shadow: 0 18px 38px rgba(0,0,0,.36); }.theme-dark .panel-head,.theme-dark .panel-foot { border-color: #45414b; background: #302f35; }.theme-dark .panel-title { color: #f2eff6; }.theme-dark .panel-grip { color: #89828f; }.theme-dark .annotation-list { background: #29282d; }.theme-dark .thread-card { border-color: #47434e; background: #34323a; }.theme-dark .thread-card:hover { border-color: #967fff; }.theme-dark .thread-card p { color: #eeeaf2; }.theme-dark .thread-meta,.theme-dark .target-label { color: #aaa3b0; }.theme-dark .shot-thumb { border-color: #4b4752; }.theme-dark .count { background: #433672; color: #dcd5ff; }.theme-dark .mini { color: #b8b1be; }.theme-dark .mini:hover,.theme-dark .mini.active { background: #433672; color: #e6e0ff; }
+    .theme-dark .collab { border-color: #45414b; background: #302f35; }.theme-dark .collab-user,.theme-dark .collab-text strong { color: #f2eff6; }.theme-dark .collab-text small { color: #aaa3b0; }.theme-dark .collab-avatar { background: #433672; color: #dcd5ff; }.theme-dark .collab-input { border-color: #4b4752; background: #29282d; color: #f2eff6; }.theme-dark .collab-input:focus { border-color: rgba(163,141,255,.62); box-shadow: 0 0 0 2px rgba(163,141,255,.13); }.theme-dark .collab-join { background: #a38dff; color: #211d2b; }.theme-dark .room-avatar { box-shadow: 0 0 0 1px #302f35; }
+    .theme-dark .composer,.theme-dark .shot-popover { border-color: rgba(255,255,255,.09); background: #302f35; box-shadow: 0 18px 38px rgba(0,0,0,.36); }.theme-dark .selected-label { color: #b6afbb; }.theme-dark .tabs { background: #403d46; }.theme-dark .tab { color: #c0bac6; }.theme-dark .tab.active { background: #29282d; color: #d8d1ff; box-shadow: none; }.theme-dark .composer textarea,.theme-dark .shot-popover textarea { border-color: #4b4752; background: #29282d; color: #f2eff6; }.theme-dark .style-grid label { border-color: #4b4752; color: #b9b1bd; }.theme-dark .style-grid input,.theme-dark .style-grid select { color: #f2eff6; }.theme-dark .shot-bar { border-color: rgba(255,255,255,.09); background: #302f35; box-shadow: 0 16px 34px rgba(0,0,0,.36); color: #f2eff6; }.theme-dark .shot-label,.theme-dark .shot-button { color: #c8c1cd; }.theme-dark .shot-button:hover,.theme-dark .shot-button.active { background: #433672; color: #e5dfff; }.theme-dark .shot-button.primary,.theme-dark .deliver,.theme-dark .copy { background: #a38dff; color: #211d2b; }.theme-dark .panel-launcher { border-color: rgba(255,255,255,.18); background: #a38dff; box-shadow: 0 14px 30px rgba(0,0,0,.34); color: #211d2b; }.theme-dark .panel-launcher .launcher-bubble { border-color: rgba(33,29,43,.50); }.theme-dark .panel-launcher .launcher-bubble::after { background: #211d2b; box-shadow: 8px 0 #211d2b; }.theme-dark .launcher-count { background: #29282d; color: #e3dcff; }
+    .panel-foot { grid-template-columns: minmax(0,1fr); }.thread { grid-template-columns: 26px minmax(0,1fr); }.thread-card { position: relative; padding-right: 70px; cursor: pointer; }.thread-card.dom { border-color: #ddd5ff; background: #f9f7ff; }.thread-card.shot { border-color: #f3cfb2; background: #fff9f4; }.thread-card.dom:hover { border-color: rgba(118,87,255,.68); background: #f6f3ff; }.thread-card.shot:hover { border-color: rgba(237,138,65,.72); background: #fff6ed; }.thread-card.dom .shot-thumb { border-color: #ddd5ff; }.thread-card.shot .shot-thumb { border-color: #f3cfb2; }.card-tools { position: absolute; top: 7px; right: 7px; display: flex; gap: 1px; }.card-tools .mini { width: 26px; height: 26px; }.card-tools .edit { color: #77717f; }.thread-card.dom .card-tools .edit,.thread-card.dom .card-tools .delete { color: #7657ff; }.thread-card.shot .card-tools .edit,.thread-card.shot .card-tools .delete { color: #d77534; }.card-tools .delete.confirm { width: 46px; background: #c75643; color: #fff !important; font-size: 11px; font-weight: 700; }.agent-dialog { grid-template-rows: auto minmax(0,1fr) auto auto; }.agent-attachments { display: flex; gap: 8px; min-height: 0; overflow-x: auto; border-top: 1px solid rgba(255,255,255,.12); background: #29282d; padding: 10px 12px; }.agent-attachments:empty { display: none; }.agent-attachments img { display: block; width: 88px; height: 60px; flex: 0 0 auto; border: 1px solid rgba(255,255,255,.16); border-radius: 5px; background: #201f24; cursor: zoom-in; object-fit: cover; }.theme-dark .thread-card.dom { border-color: #51486f; background: #34313f; }.theme-dark .thread-card.shot { border-color: #6a4b38; background: #3a302c; }.theme-dark .thread-card.dom:hover { border-color: #a38dff; background: #3b374a; }.theme-dark .thread-card.shot:hover { border-color: #f2a15f; background: #40342d; }.theme-dark .thread-card.dom .card-tools .edit,.theme-dark .thread-card.dom .card-tools .delete { color: #a38dff; }.theme-dark .thread-card.shot .card-tools .edit,.theme-dark .thread-card.shot .card-tools .delete { color: #f2a15f; }
+    .workbar.hidden { display: none; }.panel-launcher-wrap { position: fixed; z-index: 21; top: 50%; right: 16px; width: 48px; height: 48px; transform: translateY(-50%); }.panel-launcher-wrap.hidden { display: none; }.panel-launcher { position: relative; display: grid; width: 48px; min-height: 48px; height: 48px; place-items: center; border: 0; border-radius: 16px 16px 16px 6px; background: #7657ff; box-shadow: 0 10px 24px rgba(52,34,125,.24); color: #fff; padding: 0; }.panel-launcher:hover { background: #6548e7; }.panel-launcher .launcher-bubble { width: 28px; height: 28px; border: 1px solid rgba(255,255,255,.56); border-radius: 10px 10px 10px 4px; }.launcher-count { position: absolute; right: -5px; bottom: -5px; display: grid; min-width: 18px; height: 18px; place-items: center; border: 2px solid #fff; border-radius: 9px; background: #29282d; color: #fff; font-size: 9px; }.launcher-dismiss { position: absolute; top: -7px; right: -7px; display: grid; width: 22px; height: 22px; place-items: center; border: 0; border-radius: 11px; background: #29282d; box-shadow: 0 4px 10px rgba(24,22,31,.18); color: #fff; opacity: 0; padding: 0; pointer-events: none; transform: scale(.86); transition: opacity .14s ease, transform .14s ease; }.launcher-dismiss svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; }.panel-launcher-wrap:hover .launcher-dismiss,.panel-launcher-wrap:focus-within .launcher-dismiss { opacity: 1; pointer-events: auto; transform: scale(1); }.theme-dark .panel-launcher { background: #a38dff; color: #211d2b; box-shadow: 0 12px 28px rgba(0,0,0,.4); }.theme-dark .panel-launcher:hover { background: #b09dff; }.theme-dark .panel-launcher .launcher-bubble { border-color: rgba(33,29,43,.48); }.theme-dark .panel-launcher .launcher-bubble::after { background: #211d2b; box-shadow: 8px 0 #211d2b; }.theme-dark .launcher-count { border-color: #29282d; background: #f2eff6; color: #29282d; }
+    .panel { isolation: isolate; }.pin { background: transparent; box-shadow: 0 5px 12px rgba(65,43,154,.24); color: #7657ff; isolation: isolate; }.pin.orange { background: transparent; box-shadow: 0 5px 12px rgba(84,44,16,.24); color: #ed8a41; }.pin-shape { position: absolute; inset: 0; width: 100%; height: 100%; color: inherit; pointer-events: none; }.pin-symbol { position: relative; z-index: 1; display: grid; place-items: center; color: #fff; transform: translate(-.5px, 1px); }.pin b { z-index: 2; }.theme-dark .count { background: #433672; color: #dcd5ff; }.tag.dom { background: #ebe6ff; color: #7657ff; }.tag.shot { background: #fff2e8; color: #ed8a41; }.thread-card,.pin { opacity: 1; filter: none; }.thread-card.dom { border-color: #ddd5ff; background: #f9f7ff; }.thread-card.shot { border-color: #f3cfb2; background: #fff9f4; }.thread-card.dom:hover { border-color: rgba(118,87,255,.68); background: #f6f3ff; }.thread-card.shot:hover { border-color: rgba(237,138,65,.72); background: #fff6ed; }.thread-card.dom .shot-thumb { border-color: #ddd5ff; }.thread-card.shot .shot-thumb { border-color: #f3cfb2; }.thread-card.dom .card-tools .edit,.thread-card.dom .card-tools .delete { color: #7657ff; }.thread-card.shot .card-tools .edit,.thread-card.shot .card-tools .delete { color: #d77534; }.theme-dark .thread-card.dom { border-color: #51486f; background: #34313f; }.theme-dark .thread-card.shot { border-color: #6a4b38; background: #3a302c; }.theme-dark .thread-card.dom:hover { border-color: #a38dff; background: #3b374a; }.theme-dark .thread-card.shot:hover { border-color: #f2a15f; background: #40342d; }.theme-dark .thread-card.dom .card-tools .edit,.theme-dark .thread-card.dom .card-tools .delete { color: #a38dff; }.theme-dark .thread-card.shot .card-tools .edit,.theme-dark .thread-card.shot .card-tools .delete { color: #f2a15f; }.agent-count svg { display: block; width: 18px; height: 18px; fill: currentColor; stroke: none; }.style-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }.style-color-inputs { display: grid; min-width: 0; grid-template-columns: minmax(0,1fr) 22px; align-items: center; gap: 4px; }.style-color-inputs input[type="color"] { width: 22px; min-width: 22px; height: 22px; padding: 0; }
+    .panel-launcher-wrap { top: 50%; right: 8px; width: 48px; height: 68px; transform: translateY(-50%); }.panel-launcher { position: relative; display: grid; width: 48px; min-height: 68px; height: 68px; place-items: center; border: 0; border-radius: 12px; background: #fff; box-shadow: 0 10px 24px rgba(31,28,40,.14); color: #69636f; padding: 0; writing-mode: horizontal-tb; }.panel-launcher:hover,.panel-launcher:focus-visible { background: #f7f5fb; color: #7657ff; }.panel-launcher > svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }.panel-launcher .launcher-bubble,.launcher-letter { display: none; }.launcher-count { position: absolute; left: 5px; right: auto; bottom: 5px; display: grid; min-width: 16px; height: 16px; place-items: center; border: 1px solid #fff; border-radius: 8px; background: #7657ff; color: #fff; font-size: 9px; font-weight: 800; line-height: 1; }.launcher-dismiss { top: 4px; right: 4px; z-index: 1; width: 18px; height: 18px; background: transparent; box-shadow: none; color: #98919e; opacity: 1; pointer-events: auto; transform: none; }.launcher-dismiss:hover,.launcher-dismiss:focus-visible { background: #f0eef6; color: #5d5761; }.launcher-dismiss svg { width: 12px; height: 12px; }.theme-dark .panel-launcher { background: #302f36; box-shadow: 0 12px 28px rgba(0,0,0,.4); color: #c8c1ce; }.theme-dark .panel-launcher:hover,.theme-dark .panel-launcher:focus-visible { background: #3a3740; color: #e2dbff; }.theme-dark .launcher-count { border-color: #302f36; background: #a38dff; color: #211d2b; }.theme-dark .launcher-dismiss { color: #a49daa; }.theme-dark .launcher-dismiss:hover,.theme-dark .launcher-dismiss:focus-visible { background: #45414c; color: #f1edf6; }
+    .collab-room { grid-template-columns: minmax(0,1fr) 48px 48px; }.collab-create,.collab-join { height: 30px; border: 0; border-radius: 7px; padding: 0; font-size: 12px; font-weight: 760; }.collab-create { background: #ebe6ff; color: #7657ff; }.theme-dark .collab-create { background: #433672; color: #dcd5ff; }
+    .style-field { position: relative; padding-right: 24px !important; cursor: text; }.style-field::after { content: ""; position: absolute; top: 50%; right: 10px; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; opacity: .66; pointer-events: none; transform: translateY(-64%) rotate(45deg); }.style-field:focus-within { border-color: rgba(118,87,255,.48); box-shadow: 0 0 0 2px rgba(118,87,255,.10); }.style-menu { position: fixed; z-index: 80; display: grid; gap: 2px; overflow: auto; border: 1px solid #e7e4ed; border-radius: 8px; background: #fff; box-shadow: 0 14px 30px rgba(31,28,40,.18); padding: 4px; }.style-menu.hidden { display: none; }.style-menu button { display: grid; grid-template-columns: auto minmax(0,1fr); min-height: 30px; align-items: center; gap: 8px; border: 0; border-radius: 6px; background: transparent; color: #29282d; padding: 0 9px; font-size: 12px; font-weight: 650; text-align: left; }.style-menu button:hover,.style-menu button.selected { background: #ebe6ff; color: #7657ff; }.style-menu .swatch { width: 14px; height: 14px; border: 1px solid rgba(41,40,45,.16); border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.48); }.theme-dark .style-field:focus-within { border-color: rgba(163,141,255,.62); box-shadow: 0 0 0 2px rgba(163,141,255,.13); }.theme-dark .style-menu { border-color: #4b4752; background: #302f35; box-shadow: 0 18px 38px rgba(0,0,0,.40); }.theme-dark .style-menu button { color: #f2eff6; }.theme-dark .style-menu button:hover,.theme-dark .style-menu button.selected { background: #433672; color: #e5dfff; }.theme-dark .style-menu .swatch { border-color: rgba(255,255,255,.22); box-shadow: none; }
+    /* Neutral-first panel: accents identify annotation source, not the whole product. */
+    .workbar { border-color: #e5e5e7; background: rgba(255,255,255,.98); box-shadow: 0 9px 26px rgba(24,24,27,.10); color: #52525b; }
+    .tool { color: #52525b; }.tool:hover { background: #f4f4f5; color: #18181b; }.tool.active { background: #18181b; color: #fff; }.agent-count em { background: #18181b; color: #fff; }.divider { background: #e4e4e7; }
+    .panel { background: #fff; box-shadow: 0 15px 34px rgba(24,24,27,.12); }.panel-head,.panel-foot,.collab { border-color: #e5e5e7; background: #fff; }.panel-title,.collab-user,.collab-text strong { color: #202124; }.mini { color: #71717a; }.mini:hover,.mini.active { background: #f4f4f5; color: #202124; }
+    .count { background: #f4f4f5; color: #3f3f46; }.collab-avatar { background: #f4f4f5; color: #52525b; }.collab-input { border-color: #e4e4e7; background: #fafafa; color: #202124; }.collab-input:focus { border-color: #a1a1aa; box-shadow: 0 0 0 2px rgba(24,24,27,.08); }.collab-create { background: #f4f4f5; color: #3f3f46; }.collab-join,.deliver,.copy,.save,.shot-button.primary { background: #18181b; color: #fff; }.collab-join:hover,.deliver:hover,.copy:hover,.save:hover,.shot-button.primary:hover { background: #27272a; }
+    .annotation-list { background: #fff; }.thread-card { border-color: #e4e4e7; background: #fff; }.thread-card.dom { border-color: #ece9f2; background: #fdfcff; }.thread-card.shot { border-color: #f2eae2; background: #fffdfa; }.thread-card.dom:hover { border-color: rgba(110,91,199,.42); background: #fbfaff; }.thread-card.shot:hover { border-color: rgba(201,118,61,.45); background: #fffaf6; }.thread-card p { color: #3f3f46; }.thread-meta,.target-label { color: #71717a; }.tag.dom { background: #f0eef8; color: #6e5bc7; }.tag.shot { background: #fbefe6; color: #c9763d; }.thread-card.dom .shot-thumb { border-color: #ece9f2; }.thread-card.shot .shot-thumb { border-color: #f2eae2; }.thread-card.dom .card-tools .edit,.thread-card.dom .card-tools .delete { color: #6e5bc7; }.thread-card.shot .card-tools .edit,.thread-card.shot .card-tools .delete { color: #c9763d; }
+    .theme-dark .workbar,.theme-dark .panel { background: #18181b; border-color: #3f3f46; }.theme-dark .panel-head,.theme-dark .panel-foot,.theme-dark .collab { background: #202124; border-color: #3f3f46; }.theme-dark .tool.active,.theme-dark .collab-join,.theme-dark .deliver,.theme-dark .copy,.theme-dark .save,.theme-dark .shot-button.primary { background: #f4f4f5; color: #18181b; }.theme-dark .tool:hover,.theme-dark .mini:hover { background: #27272a; color: #fff; }.theme-dark .count { background: #27272a; color: #e4e4e7; }.theme-dark .collab-avatar { background: #27272a; color: #d4d4d8; }.theme-dark .thread-card { border-color: #3f3f46; background: #202124; }.theme-dark .thread-card.dom { border-color: #403b50; background: #211f29; }.theme-dark .thread-card.shot { border-color: #4b3d32; background: #29231e; }
+    .tag svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .tool[data-mode="comment"]:hover:not(.active) { background: #f0eef8; color: #6e5bc7; }.tool[data-action="shot"]:hover:not(.active) { background: #fbefe6; color: #c9763d; }
+    .theme-dark .tool[data-mode="comment"]:hover:not(.active) { background: #2d2a3b; color: #c7beff; }.theme-dark .tool[data-action="shot"]:hover:not(.active) { background: #362b24; color: #e8aa77; }.theme-dark .collab-create { background: #3f3f46; color: #f4f4f5; }.theme-dark .collab-create:hover { background: #52525b; }.theme-dark .thread-card { border-color: #52525b; }.theme-dark .thread-card.dom { border-color: #5a5469; }.theme-dark .thread-card.shot { border-color: #614c40; }
+    .collab { position: relative; }.collab-side { display: flex; min-width: 0; align-items: center; justify-content: flex-end; }.collab-login { height: 28px; border: 0; border-radius: 6px; background: #18181b; color: #fff; padding: 0 10px; font-size: 11px; font-weight: 760; white-space: nowrap; }.collab-login:hover { background: #27272a; }.collab-login[hidden],.collab-members[hidden] { display: none; }.collab-account-menu { position: absolute; z-index: 20; top: 38px; left: 12px; display: grid; min-width: 116px; overflow: hidden; border: 1px solid #e4e4e7; border-radius: 7px; background: #fff; box-shadow: 0 10px 22px rgba(24,24,27,.15); padding: 4px; }.collab-account-menu.hidden { display: none; }.collab-account-menu button { min-height: 30px; border: 0; border-radius: 5px; background: transparent; color: #3f3f46; padding: 0 9px; font-size: 11px; font-weight: 680; text-align: left; }.collab-account-menu button:hover { background: #f4f4f5; color: #18181b; }.collab-account-menu button.is-danger:hover { background: #fff1ee; color: #b94a3f; }.theme-dark .collab-login { background: #f4f4f5; color: #18181b; }.theme-dark .collab-login:hover { background: #fff; }.theme-dark .collab-account-menu { border-color: #52525b; background: #27272a; box-shadow: 0 12px 26px rgba(0,0,0,.42); }.theme-dark .collab-account-menu button { color: #e4e4e7; }.theme-dark .collab-account-menu button:hover { background: #3f3f46; color: #fff; }.theme-dark .collab-account-menu button.is-danger:hover { background: #4a2e2b; color: #fecaca; }
+    :root { --brand-purple: #9c5bc8; --brand-purple-soft: #f8eef9; --brand-orange: #df7959; --brand-orange-soft: #fdf0eb; }.brand-mark,.site-button.primary,.bars i:nth-child(4) { background: var(--brand-purple); border-color: var(--brand-purple); }.eyebrow { color: var(--brand-purple); }.bars i { background: #ecdaf4; }.target.is-selected { outline-color: rgba(156,91,200,.72); }.pin { color: var(--brand-purple); box-shadow: 0 5px 12px rgba(114,62,143,.24); }.pin.orange { color: var(--brand-orange); box-shadow: 0 5px 12px rgba(137,67,39,.22); }.pin-shape path { fill: currentColor; }.count,.thread-index { background: var(--brand-purple); color: #fff; }.thread-index.shot { background: var(--brand-orange); }.tag.dom,.collab-avatar { background: var(--brand-purple-soft); color: var(--brand-purple); }.tag.shot { background: var(--brand-orange-soft); color: var(--brand-orange); }.thread-card.dom { border-color: #eedff3; background: #fffcff; }.thread-card.shot { border-color: #f6ded4; background: #fffdfc; }.thread-card.dom:hover { border-color: rgba(156,91,200,.5); background: #fcf8fd; }.thread-card.shot:hover { border-color: rgba(223,121,89,.52); background: #fff9f6; }.thread-card.dom .card-tools .edit,.thread-card.dom .card-tools .delete { color: var(--brand-purple); }.thread-card.shot .card-tools .edit,.thread-card.shot .card-tools .delete { color: var(--brand-orange); }.tool[data-mode="comment"]:hover:not(.active) { background: var(--brand-purple-soft); color: var(--brand-purple); }.tool[data-action="shot"]:hover:not(.active) { background: var(--brand-orange-soft); color: var(--brand-orange); }.tool[data-compare].active { background: var(--brand-purple-soft); color: var(--brand-purple); }.tool[data-compare]:disabled { color: #b4afb8; cursor: default; }.shot-button:hover,.shot-button.active { background: var(--brand-purple-soft); color: var(--brand-purple); }.shot-button.primary { background: #18181b; color: #fff; }.shot-selection { border-color: var(--brand-purple); background: rgba(156,91,200,.18); }.shot-drawing line,.shot-drawing polyline { stroke: var(--brand-purple); }#arrowhead path { fill: var(--brand-purple); }.theme-dark .thread-card.dom { border-color: #5a4a63; background: #29242d; }.theme-dark .thread-card.shot { border-color: #63483e; background: #2d2623; }.theme-dark .thread-card.dom:hover { border-color: #c994e4; background: #342c39; }.theme-dark .thread-card.shot:hover { border-color: #f0a386; background: #382d28; }.theme-dark .tool[data-compare].active { background: #3b2e43; color: #dfb9ef; }.theme-dark .collab-avatar { background: #342b38; color: #dfb9ef; }
+    .count { background: #f4f4f5; color: #3f3f46; }.theme-dark .count { background: #27272a; color: #e4e4e7; }
+    /* IDE-inspired Light/Dark surfaces. The host page remains untouched. */
+    .workbar { border-color: #e4e4e7; background: rgba(250,250,251,.985); box-shadow: 0 10px 28px rgba(24,24,27,.11), inset 0 1px 0 rgba(255,255,255,.9); color: #5f5f67; }.tool { color: #5f5f67; }.tool:hover:not(:disabled) { background: #f0f0f2; color: #202124; }.tool.active { background: #202124; color: #fff; }.divider { background: #dedee2; }
+    .panel { border-color: #dedee2; background: #f5f5f6; box-shadow: 0 18px 44px rgba(24,24,27,.15), inset 0 1px 0 rgba(255,255,255,.82); }.panel-head,.panel-foot,.collab { border-color: #e4e4e7; background: #fafafa; }.annotation-list { background: #f5f5f6; }.panel-title,.collab-user,.collab-text strong { color: #202124; }.collab-text small,.thread-meta,.target-label { color: #71717a; }.mini { color: #71717a; }.mini:hover,.mini.active { background: #f0f0f2; color: #202124; }.count { background: #ececee; color: #52525b; }
+    .collab-input,.style-grid label { border-color: #e4e4e7; background: #f2f2f3; color: #202124; }.collab-input:focus,.style-field:focus-within { border-color: rgba(156,91,200,.58); box-shadow: 0 0 0 2px rgba(156,91,200,.10); }.collab-create { background: #e9e9eb; color: #3f3f46; }.collab-create:hover { background: #dedee1; }.collab-join,.collab-login,.deliver,.copy,.save,.shot-button.primary { background: #202124; color: #fff; }.collab-join:hover,.collab-login:hover,.deliver:hover,.copy:hover,.save:hover,.shot-button.primary:hover { background: #303034; }
+    .thread-card { border-color: #e4e4e7; background: #fff; box-shadow: 0 1px 2px rgba(24,24,27,.025); }.thread-card.dom { border-color: #eadfed; background: #fefcff; }.thread-card.shot { border-color: #f2dfd8; background: #fffdfc; }.thread-card.dom:hover { border-color: rgba(156,91,200,.52); background: #fcf8fd; }.thread-card.shot:hover { border-color: rgba(223,121,89,.54); background: #fff9f7; }.composer,.shot-popover,.style-menu,.collab-account-menu { border-color: #e4e4e7; background: #fff; box-shadow: 0 16px 36px rgba(24,24,27,.16), inset 0 1px 0 rgba(255,255,255,.9); }
+    .theme-dark .workbar { border-color: #38383d; background: rgba(31,31,33,.985); box-shadow: 0 16px 38px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.035); color: #b8b8bf; }.theme-dark .tool { color: #b8b8bf; }.theme-dark .tool:hover:not(:disabled) { background: #303034; color: #fff; }.theme-dark .tool.active { background: #f1f1f2; color: #18181a; }.theme-dark .divider { background: #3b3b40; }
+    .theme-dark .panel { border-color: #35353a; background: #171718; box-shadow: 0 22px 52px rgba(0,0,0,.48), inset 0 1px 0 rgba(255,255,255,.025); }.theme-dark .panel-head,.theme-dark .panel-foot,.theme-dark .collab { border-color: #38383d; background: #1e1e20; }.theme-dark .annotation-list { background: #171718; }.theme-dark .panel-title,.theme-dark .collab-user,.theme-dark .collab-text strong { color: #f2f2f3; }.theme-dark .collab-text small,.theme-dark .thread-meta,.theme-dark .target-label { color: #aaaab1; }.theme-dark .mini { color: #aaaab1; }.theme-dark .mini:hover,.theme-dark .mini.active { background: #303034; color: #fff; }.theme-dark .count,.theme-dark .collab-avatar { background: #2a2a2e; color: #d5d5d9; }
+    .theme-dark .collab-input,.theme-dark .style-grid label { border-color: #3e3e43; background: #29292c; color: #f2f2f3; }.theme-dark .collab-create { background: #303034; color: #e4e4e7; }.theme-dark .collab-create:hover { background: #3b3b40; }.theme-dark .collab-join,.theme-dark .collab-login,.theme-dark .deliver,.theme-dark .copy,.theme-dark .save,.theme-dark .shot-button.primary { background: #f1f1f2; color: #18181a; }.theme-dark .collab-join:hover,.theme-dark .collab-login:hover,.theme-dark .deliver:hover,.theme-dark .copy:hover,.theme-dark .save:hover,.theme-dark .shot-button.primary:hover { background: #fff; }
+    .theme-dark .thread-card { border-color: #3a3a3f; background: #262629; box-shadow: none; }.theme-dark .thread-card.dom { border-color: #514458; background: #272329; }.theme-dark .thread-card.shot { border-color: #59443d; background: #2b2522; }.theme-dark .thread-card.dom:hover { border-color: #b982d5; background: #302933; }.theme-dark .thread-card.shot:hover { border-color: #e39377; background: #342b27; }.theme-dark .thread-card p { color: #ececef; }.theme-dark .composer,.theme-dark .shot-popover,.theme-dark .style-menu,.theme-dark .collab-account-menu { border-color: #414147; background: #262629; box-shadow: 0 20px 44px rgba(0,0,0,.46), inset 0 1px 0 rgba(255,255,255,.035); }
+    .tool[data-action="agent"] svg,.tool[data-action="agent"] svg path { fill: currentColor; stroke: none; }.annotation-list { scrollbar-color: #c7c7cc transparent; scrollbar-width: thin; }.annotation-list::-webkit-scrollbar { width: 10px; }.annotation-list::-webkit-scrollbar-track { background: transparent; }.annotation-list::-webkit-scrollbar-thumb { border: 3px solid #f5f5f6; border-radius: 999px; background: #c7c7cc; }.annotation-list::-webkit-scrollbar-thumb:hover { background: #adadb3; }.theme-dark .annotation-list { scrollbar-color: #4b4b51 #171718; }.theme-dark .annotation-list::-webkit-scrollbar-track { background: #171718; }.theme-dark .annotation-list::-webkit-scrollbar-thumb { border-color: #171718; background: #4b4b51; }.theme-dark .annotation-list::-webkit-scrollbar-thumb:hover { background: #5c5c63; }.theme-dark .tag.dom { background: #332b37; box-shadow: inset 0 0 0 1px #514458; color: #cf9ee3; }.theme-dark .tag.shot { background: #382d28; box-shadow: inset 0 0 0 1px #59443d; color: #eca184; }
+    .style-grid .style-field { position: relative; display: grid; min-width: 0; min-height: 38px; grid-template-columns: 26px minmax(0,1fr) 28px; align-items: center; gap: 4px; border: 1px solid #e4e4e7; border-radius: 7px; background: #f2f2f3; color: #71717a; padding: 3px 4px 3px 6px !important; cursor: default; }.style-grid .style-field::after { display: none; }.style-grid .style-field:focus-within { border-color: rgba(156,91,200,.58); box-shadow: 0 0 0 2px rgba(156,91,200,.10); }.style-field-icon { display: grid; width: 24px; height: 26px; place-items: center; color: #777780; font-size: 11px; font-weight: 700; line-height: 1; cursor: help; user-select: none; }.style-grid .style-field input[type="text"],.style-grid .style-field select { min-width: 0; width: 100%; height: 28px; border: 0; outline: 0; background: transparent; color: #202124; padding: 0; font-size: 12px; }.style-preset-trigger { position: relative; display: grid; width: 28px; height: 28px; place-items: center; border: 0; border-radius: 5px; background: transparent; color: #8d8d95; padding: 0; }.style-preset-trigger::after { content: ""; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateY(-2px) rotate(45deg); }.style-preset-trigger:hover,.style-preset-trigger:focus-visible { background: #e8e8eb; color: #202124; }.style-field.is-color { grid-template-columns: 26px minmax(0,1fr) 28px; }.style-color-picker { display: block; width: 24px !important; min-width: 24px !important; height: 24px !important; overflow: hidden; border: 1px solid #d1d1d6 !important; border-radius: 5px; background: transparent; padding: 0 !important; cursor: pointer; }.style-color-picker::-webkit-color-swatch-wrapper { padding: 0; }.style-color-picker::-webkit-color-swatch { border: 0; border-radius: 4px; }.style-field.is-select { grid-template-columns: 26px minmax(0,1fr); padding-right: 8px !important; }.style-help { position: fixed; z-index: 100; width: max-content; max-width: 176px; border: 1px solid #e4e4e7; border-radius: 5px; background: rgba(255,255,255,.98); box-shadow: 0 7px 18px rgba(24,24,27,.13); color: #777780; padding: 5px 7px; font-size: 10px; font-weight: 500; line-height: 1.35; pointer-events: none; white-space: normal; }.theme-dark .style-grid .style-field { border-color: #3e3e43; background: #29292c; }.theme-dark .style-field-icon,.theme-dark .style-preset-trigger { color: #9d9da5; }.theme-dark .style-preset-trigger:hover,.theme-dark .style-preset-trigger:focus-visible { background: #343439; color: #eeeef1; }.theme-dark .style-grid .style-field input[type="text"],.theme-dark .style-grid .style-field select { color: #f2f2f3; }.theme-dark .style-color-picker { border-color: #525258 !important; }.theme-dark .style-help { border-color: #414147; background: rgba(38,38,41,.98); box-shadow: 0 9px 22px rgba(0,0,0,.34); color: #aaaab1; }
+    /* Agent handoff and screenshot tools mirror the injected extension. */
+    .agent-modal { background: rgba(17,17,19,.38); backdrop-filter: blur(3px); }
+    .agent-dialog { grid-template-rows: auto minmax(0,1fr) auto auto; width: min(720px,100%); max-height: min(700px,calc(100vh - 56px)); border: 1px solid #dedee2; border-radius: 8px; background: #f7f7f8; box-shadow: 0 28px 72px rgba(24,24,27,.24), inset 0 1px 0 rgba(255,255,255,.9); color: #202124; }
+    .agent-head,.agent-foot { min-height: 54px; border-color: #e4e4e7; background: #fafafa; padding: 10px 12px; }.agent-head { border-bottom: 1px solid #e4e4e7; }.agent-foot { justify-content: flex-end; gap: 8px; border-top: 1px solid #e4e4e7; }
+    .format { gap: 2px; border: 1px solid #e4e4e7; border-radius: 7px; background: #ececee; padding: 3px; }.format button { min-height: 28px; border-radius: 5px; color: #71717a; font-size: 11px; font-weight: 680; }.format button.active { background: #fff; box-shadow: 0 1px 3px rgba(24,24,27,.1); color: #202124; }
+    .agent-head .mini { color: #71717a; }.agent-head .mini:hover { background: #ececee; color: #202124; }.markdown { background: #fff; color: #27272a; padding: 18px 20px; font: 12px/1.68 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace; scrollbar-color: #c7c7cc transparent; scrollbar-width: thin; }.markdown::-webkit-scrollbar { width: 10px; }.markdown::-webkit-scrollbar-thumb { border: 3px solid #fff; border-radius: 999px; background: #c7c7cc; }
+    .agent-attachments { border-color: #e4e4e7; background: #f7f7f8; }.agent-attachments img { width: 84px; height: 56px; border-color: #dedee2; border-radius: 6px; background: #fff; }.agent-attachments img:hover { border-color: rgba(223,121,89,.58); box-shadow: 0 0 0 2px rgba(223,121,89,.1); }
+    .agent-action { display: inline-flex; height: 34px; align-items: center; justify-content: center; gap: 7px; border: 1px solid #d7d7dc; border-radius: 6px; background: #fff; color: #3f3f46; padding: 0 11px; font-size: 11px; font-weight: 720; white-space: nowrap; }.agent-action svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }.agent-action:hover { border-color: #b9b9c0; background: #f2f2f3; color: #202124; }.agent-action.primary { border-color: #202124; background: #202124; color: #fff; }.agent-action.primary:hover { border-color: #303034; background: #303034; color: #fff; }
+    .theme-dark .agent-modal { background: rgba(0,0,0,.58); }.theme-dark .agent-dialog { border-color: #3a3a3f; background: #171718; box-shadow: 0 32px 82px rgba(0,0,0,.62), inset 0 1px 0 rgba(255,255,255,.025); color: #f2f2f3; }.theme-dark .agent-head,.theme-dark .agent-foot { border-color: #38383d; background: #1e1e20; }.theme-dark .format { border-color: #3e3e43; background: #29292c; }.theme-dark .format button { color: #aaaab1; }.theme-dark .format button.active { background: #3a3a3f; box-shadow: none; color: #fff; }.theme-dark .agent-head .mini { color: #aaaab1; }.theme-dark .agent-head .mini:hover { background: #303034; color: #fff; }.theme-dark .markdown { background: #202022; color: #ececef; scrollbar-color: #4b4b51 #202022; }.theme-dark .markdown::-webkit-scrollbar-thumb { border-color: #202022; background: #4b4b51; }.theme-dark .agent-attachments { border-color: #38383d; background: #171718; }.theme-dark .agent-attachments img { border-color: #414147; background: #262629; }.theme-dark .agent-action { border-color: #414147; background: #29292c; color: #d5d5d9; }.theme-dark .agent-action:hover { border-color: #5b5b62; background: #343439; color: #fff; }.theme-dark .agent-action.primary { border-color: #f1f1f2; background: #f1f1f2; color: #18181a; }.theme-dark .agent-action.primary:hover { border-color: #fff; background: #fff; color: #18181a; }
+    .shot-bar { position: fixed; right: auto; bottom: auto; display: flex; width: max-content; max-width: min(320px,calc(100vw - 16px)); min-height: 44px; flex-wrap: nowrap; align-items: center; gap: 4px; border: 1px solid #e4e4e7; border-radius: 22px; background: rgba(250,250,251,.985); box-shadow: 0 10px 28px rgba(24,24,27,.13), inset 0 1px 0 rgba(255,255,255,.9); color: #5f5f67; padding: 5px; }.shot-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }.shot-button { display: grid; width: 34px; min-width: 34px; height: 34px; min-height: 34px; place-items: center; border: 0; border-radius: 17px; background: transparent; color: #5f5f67; padding: 0; }.shot-button svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }.shot-button:hover { background: #f0f0f2; color: #202124; }.shot-button.active { background: rgba(223,121,89,.13); box-shadow: inset 0 0 0 1px rgba(223,121,89,.18); color: var(--brand-orange); }.shot-bar-divider { width: 1px; height: 22px; flex: 0 0 1px; margin: 0 1px; background: #dedee2; }.shot-button.finish { display: flex; width: auto; min-width: 78px; gap: 5px; background: #202124; color: #fff; padding: 0 10px; font-size: 11px; font-weight: 720; white-space: nowrap; }.shot-button.finish:hover { background: #303034; color: #fff; }.shot-button.finish:disabled { background: #ececee; color: #a1a1aa; opacity: 1; }
+    .theme-dark .shot-bar { border-color: #38383d; background: rgba(31,31,33,.985); box-shadow: 0 16px 38px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.035); color: #b8b8bf; }.theme-dark .shot-button { background: transparent; color: #b8b8bf; }.theme-dark .shot-button:hover { background: #303034; color: #fff; }.theme-dark .shot-button.active { background: #382d28; box-shadow: inset 0 0 0 1px #59443d; color: #eca184; }.theme-dark .shot-bar-divider { background: #3b3b40; }.theme-dark .shot-button.finish { background: #f1f1f2; color: #18181a; }.theme-dark .shot-button.finish:hover { background: #fff; color: #18181a; }.theme-dark .shot-button.finish:disabled { background: #303034; color: #71717a; }
+    .shot-overlay { background: transparent !important; }
+    .shot-selection,.shot-drawing { pointer-events: none !important; }
+    .shot-selection { border: 1.5px solid var(--brand-orange); border-radius: 3px; background: rgba(223,121,89,.055); box-shadow: 0 0 0 1px rgba(255,255,255,.58); }
+    .shot-drawing path,.shot-drawing polyline { fill: none; stroke: var(--brand-orange); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; filter: none; }
+    /* Keep the standalone preview aligned with the injected workbench UI. */
+    .vfs-root .collab-login,.vfs-root .collab-create,.vfs-root .collab-join { font-size: 9.5px !important; font-weight: 700 !important; }
+    .vfs-root .deliver { font-weight: 800 !important; }
+    .count { width: 24px !important; min-width: 24px !important; height: 24px !important; border-radius: 50% !important; background: #ececee !important; color: #3f3f46 !important; font-size: 11px !important; }
+    .theme-dark .count { background: #2a2a2e !important; color: #e4e4e7 !important; }
+    .vfs-root .clear-all { color: #202124 !important; }
+    .theme-dark .vfs-root .clear-all { color: #e4e4e7 !important; }
+    .vfs-edit svg { width: 14px !important; height: 14px !important; fill: currentColor !important; stroke: none !important; }
+    .vfs-delete-glyph:not(.is-confirming)::before { width: 14px !important; height: 14px !important; }
+    .pin:not(.orange) { border-radius: 50%; background: var(--brand-purple) !important; }.pin:not(.orange) .pin-shape { display: none; }.pin:not(.orange) .pin-symbol { transform: none; }
+    .markdown { width: 100%; resize: none; border: 0; outline: 0; }.markdown:focus { box-shadow: inset 0 0 0 1px rgba(156,91,200,.58); }
+    .card-tools .delete { display: grid; width: 26px; height: 26px; place-items: center; opacity: 1; }
+    .agent-dialog { height: min(640px,calc(100vh - 56px)); min-height: min(520px,calc(100vh - 56px)); }.markdown { min-height: 0; }
+    .pin.orange { border-radius: 11px 11px 11px 4px; background: var(--brand-orange) !important; }.pin.orange .pin-symbol { transform: none; }
+    .vfs-close-control > svg { transition: transform .22s ease !important; transform-origin: center !important; }
+    .vfs-close-control:hover > svg,.vfs-close-control:focus-visible > svg { transform: rotate(180deg) !important; }
+    @media (prefers-reduced-motion: reduce) { .vfs-close-control > svg { transition: none !important; } }
+    .vfs-root .hidden { display: none !important; }
+    @media (max-width: 900px) { body { min-width: 0; }.page { padding-left: 28px; padding-right: 28px; }.report-grid { grid-template-columns: 1fr; }.panel, .composer { right: 8px; width: calc(100vw - 16px); }.site-nav { padding: 0 28px; }.site-links { gap: 12px; }.pin { display: none; }.panel-launcher-wrap { top: auto; right: 8px; bottom: 18px; transform: none; } }
+  </style>
+</head>
+<body>
+  <header class="site-nav">
+    <div class="brand"><span class="brand-mark"></span>Metric</div>
+    <nav class="site-links"><span>Overview</span><span>Reports</span><span>Members</span><span class="avatar">YH</span></nav>
+  </header>
+  <main class="page">
+    <div class="eyebrow">WEEKLY PULSE</div>
+    <h1 class="target" data-target="title" id="page-title">Make each review feel easier to act on.</h1>
+    <p class="intro target" data-target="intro">A shared overview for the signals that matter this week, designed for teams who need a calmer way to decide what comes next.</p>
+    <div class="actions"><button class="site-button primary target" data-target="button">Create report</button><button class="site-button">View archive</button></div>
+    <section class="report-grid">
+      <article class="report-card target" data-target="card"><h2>Qualified sessions</h2><p>High-intent activity has stayed consistent through the last two releases.</p><div class="stat"><strong>18,426</strong><span>this week</span></div></article>
+      <article class="report-card target" data-target="chart"><h2>Activation trend</h2><div class="bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></article>
+    </section>
+  </main>
+  <div class="vfs-marker-layer" aria-label="真实插件角标预览">
+    <button class="pin pin-title vfs-marker is-dom" data-focus="title" title="DOM 评估"><svg class="pin-shape vfs-marker-shape" viewBox="180 205 670 620" aria-hidden="true"><path fill="currentColor" d="M484 235h293c25 0 43 17 40 45-5 51-11 101-16 150-6 62-14 134-36 197-30 84-116 151-215 166-87 13-176 0-240-52-60-45-93-113-100-193-7-94 24-172 76-226 53-55 119-87 198-87Z"></path></svg><span class="pin-symbol vfs-marker-symbol"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M20.5 11.5a7.6 7.6 0 0 1-8.1 7.5 8.7 8.7 0 0 1-3.2-.7L4 20l1.5-4.3A7.1 7.1 0 0 1 4 11.5 7.6 7.6 0 0 1 12.1 4a7.6 7.6 0 0 1 8.4 7.5Z"></path></svg></span></button>
+    <button class="pin pin-card vfs-marker is-dom is-adjustment" data-focus="card" title="DOM 精准修改"><svg class="pin-shape vfs-marker-shape" viewBox="180 205 670 620" aria-hidden="true"><path fill="currentColor" d="M484 235h293c25 0 43 17 40 45-5 51-11 101-16 150-6 62-14 134-36 197-30 84-116 151-215 166-87 13-176 0-240-52-60-45-93-113-100-193-7-94 24-172 76-226 53-55 119-87 198-87Z"></path></svg><em>2</em><span class="pin-symbol vfs-marker-symbol"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M20.5 11.5a7.6 7.6 0 0 1-8.1 7.5 8.7 8.7 0 0 1-3.2-.7L4 20l1.5-4.3A7.1 7.1 0 0 1 4 11.5 7.6 7.6 0 0 1 12.1 4a7.6 7.6 0 0 1 8.4 7.5Z"></path><path d="M12 8.6v5.2M9.4 11.2h5.2"></path></svg></span></button>
+    <button class="pin orange pin-chart vfs-marker is-shot" data-focus="chart" title="截图批注"><span class="pin-symbol vfs-marker-symbol"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M4.5 7.5h3l1.3-2h6.4l1.3 2h3A2.5 2.5 0 0 1 22 10v8.5a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5V10a2.5 2.5 0 0 1 2.5-2.5Z"></path><circle cx="12" cy="14" r="3.25"></circle></svg></span></button>
+  </div>
+  <div class="vfs-root is-open" id="preview-extension-root">
+  <nav class="workbar vfs-workbar" aria-label="飞标工具栏">
+    <button class="grip vfs-workbar-grip" title="移动工具栏"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><circle cx="8" cy="7" r="1"></circle><circle cx="8" cy="12" r="1"></circle><circle cx="8" cy="17" r="1"></circle><circle cx="13" cy="7" r="1"></circle><circle cx="13" cy="12" r="1"></circle><circle cx="13" cy="17" r="1"></circle></svg></button>
+    <button class="tool active vfs-workbar-button" data-mode="read" data-vfs-action="toolbar-read" title="浏览"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M2.5 12s3.4-6.5 9.5-6.5S21.5 12 21.5 12 18.1 18.5 12 18.5 2.5 12 2.5 12Z"></path><circle cx="12" cy="12" r="2.8"></circle></svg></button>
+    <button class="tool vfs-workbar-button" data-mode="comment" data-vfs-action="toolbar-comment" title="评论"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M20.5 11.5a7.6 7.6 0 0 1-8.1 7.5 8.7 8.7 0 0 1-3.2-.7L4 20l1.5-4.3A7.1 7.1 0 0 1 4 11.5 7.6 7.6 0 0 1 12.1 4a7.6 7.6 0 0 1 8.4 7.5Z"></path></svg></button>
+    <button class="tool vfs-workbar-button" data-action="shot" data-vfs-action="toolbar-shot" title="截图批注"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M4.5 7.5h3l1.3-2h6.4l1.3 2h3A2.5 2.5 0 0 1 22 10v8.5a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5V10a2.5 2.5 0 0 1 2.5-2.5Z"></path><circle cx="12" cy="14" r="3.25"></circle></svg></button>
+    <button class="tool vfs-workbar-button vfs-workbar-agent" data-action="agent" data-vfs-action="open-agent" title="整理给 Agent"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 1.3 4.7L18 8l-4.7 1.3L12 14l-1.3-4.7L6 8l4.7-1.3L12 2Z"></path><path d="m18.5 14 .7 2.8L22 17.5l-2.8.7-.7 2.8-.7-2.8-2.8-.7 2.8-.7.7-2.8Z"></path><path d="m5.2 14 .6 2.1 2.1.6-2.1.6-.6 2.1-.6-2.1-2.1-.6 2.1-.6.6-2.1Z"></path></svg></button><span class="divider vfs-workbar-divider"></span>
+    <button class="tool vfs-workbar-button" data-theme-toggle data-vfs-action="toggle-theme" title="切换深色" aria-label="切换深色"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M19.1 4.9l-1.6 1.6M6.5 17.5l-1.6 1.6"></path></svg></button><button class="tool vfs-workbar-button" data-toggle-panel data-vfs-action="toggle-sidebar" title="收起标注" aria-label="收起标注"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg></button>
+  </nav>
+  <aside class="panel vfs-sidebar" id="panel">
+    <header class="panel-head vfs-head"><div class="panel-title vfs-title"><button class="panel-grip vfs-panel-grip" data-panel-handle title="移动标注列表"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><circle cx="8" cy="7" r="1"></circle><circle cx="8" cy="12" r="1"></circle><circle cx="8" cy="17" r="1"></circle><circle cx="13" cy="7" r="1"></circle><circle cx="13" cy="12" r="1"></circle><circle cx="13" cy="17" r="1"></circle></svg></button><img class="bubble vfs-brand-mark" src="icons/icon.svg" alt=""><h2>飞标</h2></div><div class="panel-actions vfs-head-actions"><span class="count vfs-count" id="panel-count" aria-label="当前批注数">3</span><button class="mini clear-all vfs-clear-all vfs-icon-button vfs-delete-glyph" id="clear-all" data-clear-all title="清空全部批注" aria-label="清空全部批注"></button><button class="mini vfs-icon-button vfs-close-control" data-close-panel title="收起标注" aria-label="收起标注"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></div></header>
+    <section class="collab vfs-collab" aria-label="协同批注"><div class="collab-main vfs-collab-main"><button class="collab-user vfs-collab-user" id="collab-user" data-collab-account title="飞书账号"><span class="collab-avatar vfs-collab-avatar" id="collab-avatar">飞</span><span class="collab-text vfs-collab-text"><strong id="collab-title">UX 走查</strong><small id="collab-meta">3 条 · 3 人</small></span></button><div class="collab-side vfs-collab-side"><button class="collab-login vfs-collab-login" id="collab-login" data-collab-login hidden>登录飞书</button><div class="collab-members vfs-collab-members" id="collab-members"></div><div class="vfs-collab-actions"><button class="mini vfs-icon-button is-icon-only" data-round-copy title="复制轮次 ID" aria-label="复制轮次 ID"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"></rect><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path></svg></button><button class="mini vfs-icon-button is-icon-only" data-room-refresh data-vfs-action="refresh-room" title="同步并刷新当前轮次" aria-label="同步并刷新当前轮次"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M3 4v5h5"></path><path d="M4.8 8.5A8 8 0 1 1 4 15"></path></svg></button></div></div></div><div class="collab-account-menu vfs-account-menu hidden" id="collab-account-menu"><button data-collab-switch>切换账号</button><button class="is-danger" data-collab-logout>退出登录</button></div><div class="vfs-workspace-resources" aria-label="评审空间资源"><button class="vfs-workspace-resource" type="button" data-workspace-chat><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M20.5 11.5a7.6 7.6 0 0 1-8.1 7.5 8.7 8.7 0 0 1-3.2-.7L4 20l1.5-4.3A7.1 7.1 0 0 1 4 11.5 7.6 7.6 0 0 1 12.1 4a7.6 7.6 0 0 1 8.4 7.5Z"></path></svg><span>群聊</span></button><button class="vfs-workspace-resource" type="button" data-workspace-base><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M4 6.5h16v12H4z"></path><path d="M4 10.5h16M9 6.5v12"></path></svg><span>数据表</span></button><small id="workspace-status">群与表已关联</small></div><div class="vfs-collab-round-switcher"><select id="round-select" data-round-select aria-label="批注轮次"></select></div><div class="collab-room vfs-collab-room"><input class="collab-input vfs-collab-input" id="room-input" placeholder="输入其他轮次 ID" value=""><button class="collab-create vfs-collab-create" data-room-create>新一轮</button><button class="collab-join vfs-collab-join" data-room-join>加入</button></div></section>
+    <div class="annotation-list vfs-list" id="annotation-list"></div>
+    <footer class="panel-foot vfs-foot"><button class="deliver vfs-deliver-button" data-action="agent">整理给 Agent</button><button class="mini vfs-icon-button vfs-foot-cloud is-icon-only" type="button" data-feishu-sync data-vfs-action="sync-feishu" data-vfs-tooltip="上传至云文档" title="上传至云文档" aria-label="上传至云文档"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M7.2 18.5H5.8A3.8 3.8 0 0 1 5.3 11a6.5 6.5 0 0 1 12.4-1.8 4.6 4.6 0 0 1 .5 9.2H16"></path><path d="M12 20V11"></path><path d="m8.7 14.3 3.3-3.3 3.3 3.3"></path></svg></button></footer>
+    <span class="panel-resize n" data-panel-resize="n" aria-hidden="true"></span>
+    <span class="panel-resize e" data-panel-resize="e" aria-hidden="true"></span>
+    <span class="panel-resize s" data-panel-resize="s" aria-hidden="true"></span>
+    <span class="panel-resize w" data-panel-resize="w" aria-hidden="true"></span>
+    <span class="panel-resize ne" data-panel-resize="ne" aria-hidden="true"></span>
+    <span class="panel-resize se" data-panel-resize="se" aria-hidden="true"></span>
+    <span class="panel-resize sw" data-panel-resize="sw" aria-hidden="true"></span>
+    <span class="panel-resize nw" data-panel-resize="nw" aria-hidden="true"></span>
+  </aside>
+  <div class="panel-launcher-wrap vfs-reopen-wrap hidden" id="panel-launcher-wrap"><button class="panel-launcher vfs-reopen" id="panel-launcher" data-panel-launcher title="展开飞标标注"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg></button><button class="launcher-dismiss vfs-reopen-dismiss vfs-close-control" data-workbench-close title="退出飞标，保留记录" aria-label="退出飞标，保留记录"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></div>
+  <section class="composer vfs-composer vfs-dom-popover hidden" id="composer" aria-label="DOM 标注">
+    <div class="selected-label vfs-composer-label" id="selected-label">已选择</div>
+    <div class="tabs vfs-composer-tabs"><button class="tab vfs-composer-tab active is-active" data-tab="comment">评论</button><button class="tab vfs-composer-tab" data-tab="style">试改</button></div>
+    <div class="comment-area" id="comment-area"><textarea id="comment" placeholder="输入这条批注"></textarea></div>
+    <div class="style-area vfs-style-editor hidden" id="style-area">
+      <textarea class="vfs-style-text" id="text-edit" placeholder="直接修改文字内容"></textarea>
+      <div class="style-grid vfs-style-grid">
+        <div class="style-field vfs-style-field" data-style-field="fontSize"><span class="style-field-icon vfs-style-field-icon" data-style-help="字号：调整文字大小">Aa</span><input data-style="fontSize" data-preset="fontSize" type="text" inputmode="decimal" autocomplete="off" aria-label="字号"><button class="style-preset-trigger vfs-style-preset-trigger" type="button" data-style-preset-trigger="fontSize" title="选择字号预设" aria-label="选择字号预设"></button></div>
+        <div class="style-field vfs-style-field" data-style-field="fontWeight"><span class="style-field-icon vfs-style-field-icon" data-style-help="字重：调整文字粗细">B</span><input data-style="fontWeight" data-preset="fontWeight" type="text" inputmode="numeric" autocomplete="off" aria-label="字重"><button class="style-preset-trigger vfs-style-preset-trigger" type="button" data-style-preset-trigger="fontWeight" title="选择字重预设" aria-label="选择字重预设"></button></div>
+        <div class="style-field vfs-style-field is-color" data-style-field="color"><span class="style-field-icon vfs-style-field-icon" data-style-help="文字颜色：调整文字本身的颜色">●</span><input data-style="color" type="text" spellcheck="false" autocomplete="off" aria-label="文字颜色值"><input class="style-color-picker vfs-style-color-picker" data-style="color" type="color" aria-label="打开文字调色盘"></div>
+        <div class="style-field vfs-style-field is-color" data-style-field="backgroundColor"><span class="style-field-icon vfs-style-field-icon" data-style-help="背景颜色：调整元素底色">■</span><input data-style="backgroundColor" type="text" spellcheck="false" autocomplete="off" aria-label="背景颜色值"><input class="style-color-picker vfs-style-color-picker" data-style="backgroundColor" type="color" aria-label="打开背景调色盘"></div>
+        <div class="style-field vfs-style-field" data-style-field="opacity"><span class="style-field-icon vfs-style-field-icon" data-style-help="透明度：调整元素的可见程度">◐</span><input data-style="opacity" data-preset="opacity" type="text" inputmode="decimal" autocomplete="off" aria-label="透明度"><button class="style-preset-trigger vfs-style-preset-trigger" type="button" data-style-preset-trigger="opacity" title="选择透明度预设" aria-label="选择透明度预设"></button></div>
+        <div class="style-field vfs-style-field" data-style-field="padding"><span class="style-field-icon vfs-style-field-icon" data-style-help="内边距：调整内容与边缘的距离">□</span><input data-style="padding" data-preset="padding" type="text" inputmode="decimal" autocomplete="off" aria-label="内边距"><button class="style-preset-trigger vfs-style-preset-trigger" type="button" data-style-preset-trigger="padding" title="选择内边距预设" aria-label="选择内边距预设"></button></div>
+        <div class="style-field vfs-style-field" data-style-field="borderRadius"><span class="style-field-icon vfs-style-field-icon" data-style-help="圆角：调整元素边角弧度">◻</span><input data-style="borderRadius" data-preset="borderRadius" type="text" inputmode="decimal" autocomplete="off" aria-label="圆角"><button class="style-preset-trigger vfs-style-preset-trigger" type="button" data-style-preset-trigger="borderRadius" title="选择圆角预设" aria-label="选择圆角预设"></button></div>
+        <div class="style-field vfs-style-field is-select" data-style-field="textAlign"><span class="style-field-icon vfs-style-field-icon" data-style-help="对齐：调整文字的横向排列">≡</span><select data-style="textAlign" aria-label="文字对齐"><option value="left">L</option><option value="center">C</option><option value="right">R</option></select></div>
+      </div>
+    </div>
+    <div class="composer-actions vfs-actions"><button class="mini vfs-icon-button vfs-close-control" id="cancel" title="取消" aria-label="取消"><svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg></button><button class="save vfs-button is-primary" id="save">保存</button></div>
+  </section>
+  <div class="style-menu vfs-style-menu hidden" id="style-menu"></div>
+  <div class="style-help vfs-style-help hidden" id="style-help-tooltip" role="tooltip"></div>
+  <section class="agent-modal vfs-agent-modal hidden" id="agent-modal" aria-label="Agent 修改清单"><div class="agent-dialog vfs-agent-dialog"><header class="agent-head vfs-agent-modal-head"><div class="format vfs-agent-format"><button class="active is-active" data-format="compact">精简</button><button data-format="full">完整</button></div><button class="mini vfs-icon-button vfs-close-control is-icon-only" data-agent-close title="关闭" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></header><textarea class="markdown vfs-agent-markdown" id="markdown" aria-label="Markdown 修改清单" spellcheck="false"></textarea><div class="agent-attachments vfs-agent-modal-attachments" id="agent-attachments"></div><footer class="agent-foot vfs-agent-modal-foot"><button class="agent-action vfs-agent-action" id="agent-export" title="导出 Markdown 与截图附件"><svg viewBox="0 0 24 24"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5v-9Z"></path><path d="m4 7.5 8 4.5 8-4.5M12 12v9"></path></svg><span>导出附件包</span></button><button class="agent-action primary vfs-agent-action is-primary" id="copy" title="复制给 Agent"><svg viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="12" rx="2"></rect><path d="M5 16V5a2 2 0 0 1 2-2h9"></path></svg><span>复制给 Agent</span></button></footer></div></section>
+  <section class="shot-viewer hidden" id="shot-viewer"><div class="shot-viewer-panel"><header class="shot-viewer-head"><span>截图批注</span><button class="mini vfs-close-control" data-viewer-close title="关闭" aria-label="关闭"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></header><img id="shot-viewer-image" alt="截图批注预览"></div></section>
+  <div class="shot-focus hidden" id="shot-focus"></div>
+  <section class="shot-overlay hidden" id="shot-overlay" aria-label="截图批注"><div class="shot-bar vfs-shotbar"><span class="shot-label vfs-shot-title" aria-live="polite">截图批注</span><button class="shot-button vfs-button active is-primary" data-shot-tool="box" title="框选区域" aria-label="框选区域"><svg viewBox="0 0 24 24"><path d="M5 9V5h4M15 5h4v4M19 15v4h-4M9 19H5v-4"></path></svg></button><button class="shot-button vfs-button" data-shot-tool="arrow" title="箭头" aria-label="箭头"><svg viewBox="0 0 24 24"><path d="M6 18 18 6M10 6h8v8"></path></svg></button><button class="shot-button vfs-button" data-shot-tool="pen" title="画笔" aria-label="画笔"><svg viewBox="0 0 24 24"><path d="m4 20 4.3-1 10-10a2.3 2.3 0 0 0-3.3-3.3l-10 10L4 20Z"></path><path d="m13.6 7.1 3.3 3.3"></path></svg></button><span class="shot-bar-divider vfs-shotbar-divider" aria-hidden="true"></span><button class="shot-button vfs-button" id="shot-recapture" title="重新截屏" aria-label="重新截屏"><svg viewBox="0 0 24 24"><path d="M3 4v5h5"></path><path d="M4.8 8.5A8 8 0 1 1 4 15"></path></svg></button><button class="shot-button finish vfs-button vfs-shot-finish" id="shot-finish" disabled><svg viewBox="0 0 24 24"><path d="m5 12.5 4.2 4.2L19 7"></path></svg><span>写批注</span></button><button class="shot-button vfs-button vfs-close-control" id="shot-exit" title="退出截图" aria-label="退出截图"><svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></div></section>
+  <div class="shot-selection hidden" id="shot-selection"></div>
+  <svg class="shot-drawing hidden" id="shot-drawing" aria-hidden="true"></svg>
+  <section class="shot-popover vfs-shot-popover hidden" id="shot-popover"><textarea id="shot-comment" placeholder="输入截图批注"></textarea><div class="shot-actions vfs-actions"><button class="mini vfs-button" id="shot-cancel" title="取消">取消</button><button class="save vfs-button is-primary" id="shot-save">保存</button></div></section>
+  </div>
+  <script>
+    const icons = {
+      dom: '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M20.5 11.5a7.6 7.6 0 0 1-8.1 7.5 8.7 8.7 0 0 1-3.2-.7L4 20l1.5-4.3A7.1 7.1 0 0 1 4 11.5 7.6 7.6 0 0 1 12.1 4a7.6 7.6 0 0 1 8.4 7.5Z"></path></svg>',
+      adjust: '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M20.5 11.5a7.6 7.6 0 0 1-8.1 7.5 8.7 8.7 0 0 1-3.2-.7L4 20l1.5-4.3A7.1 7.1 0 0 1 4 11.5 7.6 7.6 0 0 1 12.1 4a7.6 7.6 0 0 1 8.4 7.5Z"></path><path d="M12 8.6v5.2M9.4 11.2h5.2"></path></svg>',
+      shot: '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M4.5 7.5h3l1.3-2h6.4l1.3 2h3A2.5 2.5 0 0 1 22 10v8.5a2.5 2.5 0 0 1-2.5 2.5h-15A2.5 2.5 0 0 1 2 18.5V10a2.5 2.5 0 0 1 2.5-2.5Z"></path><circle cx="12" cy="14" r="3.25"></circle></svg>'
+    };
+    const trashIcon = '<svg viewBox="0 0 24 24"><path d="M5 7h14"></path><path d="M10 11v6M14 11v6"></path><path d="M9 7l1-2h4l1 2"></path><path d="m7 7 .8 13h8.4L17 7"></path></svg>';
+    const targets = {
+      title: { label: "页面主标题", selector: ".page > h1", type: "dom", excerpt: "Make each review feel easier to act on." },
+      intro: { label: "说明文案", selector: ".intro", type: "dom", excerpt: "A shared overview for the signals" },
+      button: { label: "Create report", selector: ".site-button.primary", type: "dom", excerpt: "Create report" },
+      card: { label: "Qualified sessions", selector: ".report-card:nth-of-type(1)", type: "dom", excerpt: "Qualified sessions" },
+      chart: { label: "Activation trend", selector: ".report-card:nth-of-type(2)", type: "screenshot", excerpt: "Activation trend" }
+    };
+    let items = [
+      { id: 1, target: "title", type: "dom", text: "标题的视觉重量偏高，建议略微收紧。", author: "我", time: "11:32" },
+      { id: 2, target: "card", type: "dom", adjustment: true, text: "卡片内边距从 24px 调整为 20px。", author: "林晨", time: "11:36", edits: ["padding 24px → 20px"] },
+      { id: 3, target: "chart", type: "screenshot", text: "柱图与右侧标题的重心不平衡。", author: "我", time: "11:42" }
+    ];
+    let collabRounds = [
+      { roundId: "FR-6D24A1B9", roundName: "UX 走查" },
+      { roundId: "FR-93C7E4A2", roundName: "PM 验收" },
+      { roundId: "FR-17B8D5C0", roundName: "上线后复查" }
+    ];
+    let collabRoundItems = {
+      "FR-6D24A1B9": items,
+      "FR-93C7E4A2": [
+        { id: 21, target: "title", type: "dom", text: "标题需要补充本次验收范围。", author: "远舟", time: "14:08" },
+        { id: 22, target: "card", type: "dom", text: "核心指标需要注明统计周期。", author: "我", time: "14:12" }
+      ],
+      "FR-17B8D5C0": []
+    };
+    let archived = [];
+    let selected = null;
+    let mode = "read";
+    let tab = "comment";
+    let baseline = null;
+    let changes = {};
+    let history = [];
+    let future = [];
+    let comparingBaseline = false;
+    let format = "compact";
+    let agentMarkdownDraft = null;
+    let themeMode = "light";
+    let pendingDeleteId = null;
+    let pendingClearAll = false;
+    let markersHidden = false;
+    let workbenchOff = false;
+    let shotStart = null;
+    let shotRegion = null;
+    let shotDraft = null;
+    let shotAnnotations = [];
+    let shotTool = "box";
+    let previewShotbarOrigin = null;
+    let collabLoggedIn = true;
+    let collabRoomId = "FR-6D24A1B9";
+    let collabMembers = ["我", "林晨", "远舟"];
+    let collabUserName = "我";
+    let collabSyncing = false;
+    let collabSyncStatus = "";
+    let collabBusyAction = "";
+    let collabLoginBusy = false;
+    let feishuDocumentBusy = false;
+    const panel = document.querySelector("#panel");
+    const composer = document.querySelector("#composer");
+    const list = document.querySelector("#annotation-list");
+    const extensionRoot = document.querySelector("#preview-extension-root");
+    const $ = (selector) => document.querySelector(selector);
+    const PREVIEW_BRAND_PURPLE = "#9c5bc8";
+    const PREVIEW_BRAND_ORANGE = "#df7959";
+    function previewAvatarData(emoji, background) { const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64"><rect width="64" height="64" rx="32" fill="${background}"/><text x="32" y="43" text-anchor="middle" font-size="34">${emoji}</text></svg>`; return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`; }
+    const previewMemberAvatars = {
+      "我": previewAvatarData("🧑🏻‍💻", "#d9c8f2"),
+      "林晨": previewAvatarData("👩🏻‍🎨", "#f3ccb8"),
+      "远舟": previewAvatarData("🧑🏻‍🚀", "#bcded8")
+    };
+    function brandPreviewSvg(svg) { return svg.replaceAll("#7657ff", PREVIEW_BRAND_PURPLE).replaceAll("#ed8a41", PREVIEW_BRAND_ORANGE).replaceAll("#c96829", "#cf7154").replaceAll("rgba(118,87,255", "rgba(156,91,200").replaceAll("rgba(237,138,65", "rgba(223,121,89"); }
+    const stylePresets = {
+      fontSize: ["10px", "11px", "12px", "13px", "14px", "15px", "16px", "18px", "20px", "24px", "28px", "32px", "36px", "40px", "48px", "56px", "64px"],
+      fontWeight: ["300", "400", "500", "600", "700", "800"],
+      color: ["#111318", "#29282d", "#59636f", "#A94DDB", "#FF704F", "#ffffff", "#000000"],
+      backgroundColor: ["#ffffff", "#f7f5fb", "#ebe6ff", "#fff2e8", "#29282d", "#000000"],
+      opacity: ["100%", "90%", "75%", "60%", "50%", "40%", "25%", "0%"],
+      padding: ["0px", "2px", "4px", "6px", "8px", "10px", "12px", "16px", "20px", "24px", "32px", "40px"],
+      borderRadius: ["0px", "2px", "4px", "6px", "8px", "10px", "12px", "16px", "20px", "24px", "32px"]
+    };
+    let styleMenuInput = null;
+
+    function renderCollabPreview() {
+      const active = Boolean(collabRoomId);
+      const activeRound = collabRounds.find((round) => round.roundId === collabRoomId);
+      const accountMenu = $("#collab-account-menu");
+      const login = $("#collab-login");
+      const user = $("#collab-user");
+      const members = $("#collab-members");
+      const feishuSync = $("[data-feishu-sync]");
+      const refresh = $("[data-room-refresh]");
+      const copyRound = $("[data-round-copy]");
+      const resources = $(".vfs-workspace-resources");
+      const roundSwitcher = $(".vfs-collab-round-switcher");
+      const roundSelect = $("#round-select");
+      const accountAvatar = $("#collab-avatar");
+      accountAvatar.replaceChildren();
+      if (collabLoggedIn && previewMemberAvatars[collabUserName]) {
+        const image = document.createElement("img");
+        image.src = previewMemberAvatars[collabUserName];
+        image.alt = "";
+        accountAvatar.append(image);
+      } else {
+        accountAvatar.textContent = collabLoggedIn ? collabUserName.slice(0, 1) : "飞";
+      }
+      $("#collab-title").textContent = active ? activeRound?.roundName || "批注轮次" : collabLoggedIn ? "Metric 评审空间" : "协同";
+      $("#collab-meta").textContent = active ? collabSyncStatus || `${items.length} 条 · ${collabMembers.length} 人` : collabLoggedIn ? `${collabRounds.length} 个批注轮次` : "未登录";
+      user.disabled = !collabLoggedIn;
+      user.title = collabLoggedIn ? "账号菜单" : "未登录";
+      login.hidden = collabLoggedIn;
+      login.disabled = collabLoginBusy;
+      login.textContent = collabLoginBusy ? "登录中" : "登录飞书";
+      login.classList.toggle("is-loading", collabLoginBusy);
+      login.toggleAttribute("aria-busy", collabLoginBusy);
+      members.hidden = !collabLoggedIn || !active || collabMembers.length < 2;
+      if (!collabLoggedIn) accountMenu.classList.add("hidden");
+      resources.hidden = !collabLoggedIn;
+      roundSwitcher.hidden = !collabLoggedIn || !collabRounds.length;
+      const roundSignature = collabRounds.map((round) => `${round.roundId}:${round.roundName}`).join("|");
+      if (roundSelect.dataset.signature !== roundSignature) {
+        roundSelect.innerHTML = collabRounds.map((round) => `<option value="${round.roundId}">${round.roundName} · ${round.roundId}</option>`).join("");
+        roundSelect.dataset.signature = roundSignature;
+      }
+      if (active && roundSelect.value !== collabRoomId) roundSelect.value = collabRoomId;
+      const create = $("[data-room-create]");
+      const join = $("[data-room-join]");
+      create.disabled = !collabLoggedIn || Boolean(collabBusyAction);
+      create.textContent = collabBusyAction === "create" ? "创建中" : collabRounds.length ? "新一轮" : "开始";
+      create.title = collabRounds.length ? "创建新的批注轮次" : "创建评审空间与第一轮批注";
+      create.classList.toggle("is-loading", collabBusyAction === "create");
+      create.toggleAttribute("aria-busy", collabBusyAction === "create");
+      join.disabled = !collabLoggedIn || Boolean(collabBusyAction);
+      join.textContent = collabBusyAction === "join" ? "加入中" : "加入";
+      join.title = "通过轮次 ID 加入或切换批注轮次";
+      join.classList.toggle("is-loading", collabBusyAction === "join");
+      join.toggleAttribute("aria-busy", collabBusyAction === "join");
+      feishuSync.hidden = !collabLoggedIn;
+      feishuSync.disabled = !collabLoggedIn || !items.length || Boolean(collabBusyAction) || feishuDocumentBusy;
+      feishuSync.classList.toggle("is-loading", feishuDocumentBusy);
+      feishuSync.toggleAttribute("aria-busy", feishuDocumentBusy);
+      feishuSync.title = feishuDocumentBusy ? "正在上传至云文档" : "上传至云文档";
+      feishuSync.setAttribute("aria-label", feishuSync.title);
+      copyRound.hidden = !active;
+      copyRound.disabled = !collabLoggedIn || !active || Boolean(collabBusyAction);
+      refresh.hidden = !active;
+      refresh.disabled = !collabLoggedIn || !active || Boolean(collabBusyAction);
+      refresh.classList.toggle("is-loading", collabBusyAction === "refresh");
+      refresh.classList.toggle("is-syncing", collabBusyAction === "refresh");
+      refresh.toggleAttribute("aria-busy", collabBusyAction === "refresh");
+      refresh.title = collabSyncing ? "正在同步当前轮次" : "同步并刷新当前轮次";
+      refresh.setAttribute("aria-label", refresh.title);
+      members.innerHTML = collabMembers.slice(1).map((member, index) => `<span class="room-avatar vfs-room-avatar" style="--member:${["#7657ff", "#ed8a41", "#4b9b6f"][index % 3]};--vfs-member-color:${["#7657ff", "#ed8a41", "#4b9b6f"][index % 3]}" title="${member}">${previewMemberAvatars[member] ? `<img src="${previewMemberAvatars[member]}" alt="">` : member.slice(0, 1)}</span>`).join("");
+    }
+
+    function switchPreviewRound(roundId) {
+      if (!roundId || roundId === collabRoomId || !collabRoundItems[roundId]) return;
+      if (collabRoomId) collabRoundItems[collabRoomId] = items;
+      collabRoomId = roundId;
+      items = collabRoundItems[roundId];
+      pendingDeleteId = null;
+      pendingClearAll = false;
+      renderList();
+      updatePins();
+      renderCollabPreview();
+    }
+
+    function createPreviewRound() {
+      collabLoggedIn = true;
+      if (collabRoomId) collabRoundItems[collabRoomId] = items;
+      const roundId = `FR-${Math.random().toString(16).slice(2, 10).toUpperCase().padEnd(8, "0")}`;
+      const round = { roundId, roundName: `第 ${collabRounds.length + 1} 轮` };
+      collabRounds.push(round);
+      collabRoundItems[roundId] = [];
+      collabRoomId = roundId;
+      items = collabRoundItems[roundId];
+      renderCollabPreview();
+      renderList();
+      updatePins();
+    }
+
+    function hidePanel(showLauncher = true) {
+      const launcher = $("#panel-launcher-wrap");
+      const panelRect = panel.getBoundingClientRect();
+      panel.style.left = "auto";
+      panel.style.right = "8px";
+      panel.style.top = `${Math.round(Math.max(78, Math.min(panelRect.top, window.innerHeight - panelRect.height - 8)))}px`;
+      panel.style.bottom = "auto";
+      launcher.style.left = "auto";
+      launcher.style.right = "8px";
+      launcher.style.top = "50%";
+      launcher.style.bottom = "auto";
+      launcher.style.transform = "translateY(-50%)";
+      if (showLauncher) {
+        launcher.classList.remove("hidden");
+      } else {
+        launcher.classList.add("hidden");
+      }
+      panel.classList.add("hidden");
+      extensionRoot?.classList.remove("is-open");
+      updatePanelToggle();
+    }
+    function showPanel() {
+      panel.classList.remove("hidden");
+      $("#panel-launcher-wrap").classList.add("hidden");
+      extensionRoot?.classList.add("is-open");
+      updatePanelToggle();
+    }
+    function updatePanelToggle() {
+      const button = $("[data-toggle-panel]");
+      if (!button) return;
+      const isOpen = !panel.classList.contains("hidden");
+      const label = isOpen ? "收起标注" : "展开标注";
+      button.title = label;
+      button.setAttribute("aria-label", label);
+      button.innerHTML = isOpen
+        ? '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"></path></svg>'
+        : '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"></path></svg>';
+    }
+    function setTheme(nextTheme) {
+      themeMode = nextTheme;
+      document.body.classList.toggle("theme-dark", themeMode === "dark");
+      extensionRoot?.classList.toggle("is-dark", themeMode === "dark");
+      const button = $("[data-theme-toggle]");
+      const dark = themeMode === "dark";
+      button.title = dark ? "切换浅色" : "切换深色";
+      button.setAttribute("aria-label", button.title);
+      button.innerHTML = dark
+        ? '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M20.5 14.3A8.3 8.3 0 0 1 9.7 3.5 8.3 8.3 0 1 0 20.5 14.3Z"></path></svg>'
+        : '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"></circle><path d="M12 2v2.2M12 19.8V22M2 12h2.2M19.8 12H22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M19.1 4.9l-1.6 1.6M6.5 17.5l-1.6 1.6"></path></svg>';
+    }
+    function updateReadControl() {
+      const button = document.querySelector('[data-mode="read"]');
+      const reading = mode === "read";
+      button.title = reading ? (markersHidden ? "显示所有数字角标" : "隐藏所有数字角标") : "浏览";
+      button.setAttribute("aria-label", button.title);
+      button.innerHTML = markersHidden
+        ? '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M3 3 21 21"></path><path d="M10.6 5.7A10.9 10.9 0 0 1 12 5.5c6.1 0 9.5 6.5 9.5 6.5a17.1 17.1 0 0 1-3.2 3.9"></path><path d="M6.2 6.4A17.2 17.2 0 0 0 2.5 12S5.9 18.5 12 18.5a9.8 9.8 0 0 0 2.8-.4"></path><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"></path></svg>'
+        : '<svg class="vfs-toolbar-icon" viewBox="0 0 24 24"><path d="M2.5 12s3.4-6.5 9.5-6.5S21.5 12 21.5 12 18.1 18.5 12 18.5 2.5 12 2.5 12Z"></path><circle cx="12" cy="12" r="2.8"></circle></svg>';
+    }
+    function updatePins() {
+      const visibleTargets = new Set(items.map((item) => item.target));
+      document.querySelectorAll(".pin").forEach((pin) => {
+        pin.hidden = markersHidden || workbenchOff || !visibleTargets.has(pin.dataset.focus);
+      });
+    }
+    function closeWorkbench() { workbenchOff = true; panel.classList.add("hidden"); composer.classList.add("hidden"); composer.classList.remove("is-visible"); document.querySelector(".workbar").classList.add("hidden"); $("#panel-launcher-wrap").classList.add("hidden"); extensionRoot?.classList.add("is-off"); extensionRoot?.classList.remove("is-open"); updatePins(); }
+
+    function shotPreview(bounds = {}, tool = "box", points = [], annotations = []) {
+      const width = 720; const height = 400;
+      const sourceLeft = bounds.left ?? bounds.x ?? 210;
+      const sourceTop = bounds.top ?? bounds.y ?? 170;
+      const sourceWidth = bounds.width || 230;
+      const sourceHeight = bounds.height || 120;
+      const mapPoint = (point = {}) => ({ x: Math.max(8, Math.min(width - 8, (point.x ?? 0) / window.innerWidth * width)), y: Math.max(8, Math.min(height - 8, (point.y ?? 0) / window.innerHeight * height)) });
+      const left = Math.max(18, Math.min(width - 40, sourceLeft / window.innerWidth * width));
+      const top = Math.max(54, Math.min(height - 40, sourceTop / window.innerHeight * height));
+      const boxWidth = Math.max(54, Math.min(width - left - 12, sourceWidth / window.innerWidth * width));
+      const boxHeight = Math.max(42, Math.min(height - top - 12, sourceHeight / window.innerHeight * height));
+      const legacyAnnotation = tool === "arrow" ? [{ tool, start: { x: bounds.startX ?? sourceLeft, y: bounds.startY ?? sourceTop }, end: { x: bounds.endX ?? sourceLeft + sourceWidth, y: bounds.endY ?? sourceTop + sourceHeight } }] : tool === "pen" && points.length > 1 ? [{ tool, points }] : [];
+      const sourceAnnotations = annotations.length ? annotations : legacyAnnotation;
+      const annotationDrawing = sourceAnnotations.map((item) => {
+        if (item.tool === "pen") return `<polyline points="${(item.points || []).map(mapPoint).map((point) => `${point.x},${point.y}`).join(" ")}"/>`;
+        const start = mapPoint(item.start); const end = mapPoint(item.end); const angle = Math.atan2(end.y - start.y, end.x - start.x); const head = 9;
+        const h1 = { x: end.x - head * Math.cos(angle - Math.PI / 6), y: end.y - head * Math.sin(angle - Math.PI / 6) };
+        const h2 = { x: end.x - head * Math.cos(angle + Math.PI / 6), y: end.y - head * Math.sin(angle + Math.PI / 6) };
+        return `<path d="M ${start.x} ${start.y} L ${end.x} ${end.y} M ${end.x} ${end.y} L ${h1.x} ${h1.y} M ${end.x} ${end.y} L ${h2.x} ${h2.y}"/>`;
+      }).join("");
+      const drawing = `<rect x="${left}" y="${top}" width="${boxWidth}" height="${boxHeight}" rx="3" fill="rgba(223,121,89,.055)" stroke="#df7959" stroke-width="2"/><g fill="none" stroke="#df7959" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${annotationDrawing}</g>`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><rect width="720" height="400" fill="#f6f6fa"/><rect width="720" height="46" fill="#fff"/><path d="M28 14h15v15H28z" rx="4" fill="#7657ff"/><text x="51" y="28" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#2b2930">Metric</text><text x="42" y="94" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#29272e">Make each review feel easier to act on.</text><rect x="42" y="118" width="310" height="9" rx="4.5" fill="#cfccd5"/><rect x="42" y="136" width="268" height="9" rx="4.5" fill="#dedbe3"/><rect x="42" y="180" width="368" height="164" rx="8" fill="#fff" stroke="#e5e3eb"/><rect x="432" y="180" width="246" height="164" rx="8" fill="#fff" stroke="#e5e3eb"/><text x="63" y="212" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#2b2930">Qualified sessions</text><rect x="63" y="230" width="240" height="8" rx="4" fill="#e3e1e8"/><text x="63" y="296" font-family="Arial, sans-serif" font-size="33" font-weight="700" fill="#29272e">18,426</text><text x="452" y="212" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#2b2930">Activation trend</text><path d="M456 310h20v-32h20v-65h20v48h20v-93h20v67h20v-118h20v81" fill="none" stroke="#7657ff" stroke-width="12" stroke-linecap="square"/>${drawing}</svg>`;
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(brandPreviewSvg(svg))}`;
+    }
+    function domPreview(targetKey) {
+      const target = targets[targetKey] || targets.title;
+      const card = targetKey === "card" || targetKey === "chart";
+      const highlight = card ? '<rect x="42" y="180" width="368" height="164" rx="8" fill="rgba(237,138,65,.12)" stroke="#ed8a41" stroke-width="4"/>' : '<rect x="42" y="70" width="520" height="58" rx="7" fill="rgba(237,138,65,.12)" stroke="#ed8a41" stroke-width="4"/>';
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="720" height="400" viewBox="0 0 720 400"><rect width="720" height="400" fill="#f6f6fa"/><rect width="720" height="46" fill="#fff"/><path d="M28 14h15v15H28z" rx="4" fill="#7657ff"/><text x="51" y="28" font-family="Arial, sans-serif" font-size="14" font-weight="700" fill="#2b2930">Metric</text><text x="42" y="94" font-family="Arial, sans-serif" font-size="25" font-weight="700" fill="#29272e">Make each review feel easier to act on.</text><rect x="42" y="118" width="310" height="9" rx="4.5" fill="#cfccd5"/><rect x="42" y="136" width="268" height="9" rx="4.5" fill="#dedbe3"/><rect x="42" y="180" width="368" height="164" rx="8" fill="#fff" stroke="#e5e3eb"/><rect x="432" y="180" width="246" height="164" rx="8" fill="#fff" stroke="#e5e3eb"/><text x="63" y="212" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#2b2930">Qualified sessions</text><rect x="63" y="230" width="240" height="8" rx="4" fill="#e3e1e8"/><text x="63" y="296" font-family="Arial, sans-serif" font-size="33" font-weight="700" fill="#29272e">18,426</text><text x="452" y="212" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#2b2930">Activation trend</text><path d="M456 310h20v-32h20v-65h20v48h20v-93h20v67h20v-118h20v81" fill="none" stroke="#7657ff" stroke-width="12" stroke-linecap="square"/>${highlight}<text x="52" y="384" font-family="Arial, sans-serif" font-size="12" fill="#c96829">${target.label}</text></svg>`;
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(brandPreviewSvg(svg))}`;
+    }
+    function findRecord(id) { return items.find((item) => String(item.id) === String(id)); }
+    function renderList() {
+      list.innerHTML = items.length ? items.map((item, index) => {
+        const meta = targets[item.target];
+        const tag = item.type === "screenshot" ? "shot" : "dom";
+        const previewImage = item.previewImage || (item.type === "screenshot" ? shotPreview(item.bounds || {}) : domPreview(item.target));
+        const confirmingDelete = pendingDeleteId === item.id;
+        const editIcon = '<svg class="vfs-icon-svg" viewBox="0 0 1024 1024"><path d="M156.16 1024C69.12 1024 0 954.88 0 867.84V156.16C0 69.12 69.12 0 156.16 0h430.08c33.28 0 58.88 28.16 58.88 58.88s-28.16 58.88-58.88 58.88H156.16c-20.48 0-35.84 15.36-35.84 35.84v716.8c0 20.48 15.36 35.84 35.84 35.84h711.68c20.48 0 35.84-15.36 35.84-35.84V468.48c0-33.28 28.16-58.88 58.88-58.88 15.36 0 33.28 7.68 43.52 17.92 10.24 10.24 15.36 25.6 15.36 40.96v399.36c0 87.04-69.12 156.16-156.16 156.16H156.16z M450.56 670.72c-7.68 0-15.36-5.12-20.48-10.24-5.12-5.12-5.12-15.36-2.56-20.48l28.16-84.48L934.4 74.24c10.24-12.8 25.6-17.92 43.52-17.92 15.36 0 30.72 7.68 43.52 17.92 23.04 23.04 25.6 64 0 87.04L542.72 642.56l-84.48 28.16h-7.68z" fill="currentColor"></path></svg>';
+        const semanticClass = item.type === "screenshot" ? "is-shot" : "is-dom";
+        return `<div class="thread vfs-thread ${semanticClass}"><span class="thread-index vfs-index ${tag} ${semanticClass}">${index + 1}</span><div class="thread-card vfs-card ${tag} ${semanticClass}" role="button" tabindex="0" data-focus="${item.target}" data-record-id="${item.id}"><span class="thread-meta vfs-thread-meta"><span class="tag vfs-tag ${tag} ${semanticClass} ${item.adjustment ? "is-adjustment" : ""}">${item.type === "screenshot" ? icons.shot : item.adjustment ? icons.adjust : icons.dom}</span>${item.author}<span>${item.time}</span></span><p>${item.text}</p><img class="shot-thumb vfs-shot-thumb" data-preview="${item.id}" src="${previewImage}" alt="${item.type === "screenshot" ? "截图批注预览" : "DOM 批注预览"}"><span class="target-label vfs-thread-target">${meta.label}</span><span class="card-tools"><button class="mini edit vfs-edit" data-edit="${item.id}" title="编辑批注" aria-label="编辑批注">${editIcon}</button><button class="mini delete vfs-delete vfs-delete-glyph ${confirmingDelete ? "confirm is-confirming" : ""}" data-delete="${item.id}" title="${confirmingDelete ? "再次点击确认删除" : "删除批注"}" aria-label="${confirmingDelete ? "再次点击确认删除" : "删除批注"}">${confirmingDelete ? "删除" : ""}</button></span></div></div>`;
+      }).join("") : `<div class="vfs-empty"><strong>暂无批注</strong><span>选择页面元素或截图区域开始标注</span></div>`;
+      $("#panel-count").textContent = items.length;
+      $("#panel-launcher").title = items.length ? `展开飞标标注，${items.length} 条` : "展开飞标标注";
+      const clearAll = $("#clear-all");
+      if (clearAll) {
+        clearAll.disabled = !items.length;
+        clearAll.classList.toggle("confirm", pendingClearAll);
+        clearAll.classList.toggle("is-confirming", pendingClearAll);
+        clearAll.innerHTML = pendingClearAll ? "确认" : "";
+        clearAll.title = pendingClearAll ? "再次点击确认清空全部批注" : "清空全部批注";
+        clearAll.setAttribute("aria-label", clearAll.title);
+      }
+      updatePins();
+      renderCollabPreview();
+    }
+    function setMode(next) {
+      mode = next;
+      document.querySelectorAll("[data-mode]").forEach((button) => button.classList.toggle("active", button.dataset.mode === next));
+      document.querySelector("[data-vfs-action='toolbar-shot']")?.classList.toggle("active", next === "shot");
+      extensionRoot?.classList.toggle("is-dom", next === "comment");
+      extensionRoot?.classList.toggle("is-shot", next === "shot");
+      document.body.style.cursor = next === "comment" ? "crosshair" : "default";
+      updateReadControl();
+      updatePins();
+    }
+    function startSelection(key) {
+      if (mode !== "comment") return;
+      selected = key;
+      document.querySelectorAll(".target").forEach((node) => node.classList.toggle("is-selected", node.dataset.target === key));
+      const target = document.querySelector(`[data-target="${key}"]`);
+      const computed = getComputedStyle(target);
+      baseline = { style: target.getAttribute("style") || "", text: target.textContent, fontSize: parseFloat(computed.fontSize), fontWeight: computed.fontWeight, color: rgbToHex(computed.color), backgroundColor: rgbToHex(computed.backgroundColor, "#ffffff"), opacity: computed.opacity, padding: parseFloat(computed.paddingTop) || 0, borderRadius: parseFloat(computed.borderRadius) || 0, textAlign: computed.textAlign === "start" ? "left" : computed.textAlign };
+      changes = {}; history = []; future = []; comparingBaseline = false;
+      $("#selected-label").textContent = `已选择：${targets[key].label}`;
+      $("#text-edit").value = baseline.text;
+      ["fontSize", "fontWeight", "color", "backgroundColor", "opacity", "padding", "borderRadius", "textAlign"].forEach((name) => document.querySelectorAll(`[data-style="${name}"]`).forEach((input) => { input.value = baseline[name]; }));
+      hidePanel(false); composer.classList.remove("hidden"); composer.classList.add("is-visible"); setTab("comment"); updateStyleCompareControl();
+    }
+    function rgbToHex(value, fallback = "#000000") { const values = String(value).match(/\d+/g); return values && values.length >= 3 ? `#${values.slice(0,3).map((part) => (+part).toString(16).padStart(2,"0")).join("")}` : fallback; }
+    function setTab(next) { tab = next; document.querySelectorAll("[data-tab]").forEach((button) => { const active = button.dataset.tab === next; button.classList.toggle("active", active); button.classList.toggle("is-active", active); }); $("#comment-area").classList.toggle("hidden", next !== "comment"); $("#style-area").classList.toggle("hidden", next !== "style"); }
+    function openStyleMenu(input) {
+      const name = input?.dataset?.preset || input?.dataset?.style;
+      const values = stylePresets[name] || [];
+      const menu = $("#style-menu");
+      if (!values.length || !menu) return closeStyleMenu();
+      styleMenuInput = input;
+      menu.innerHTML = values.map((value) => {
+        const selected = String(normalizePreviewStyleValue(name, value)) === String(normalizePreviewStyleValue(name, input.value));
+        const swatch = name === "color" || name === "backgroundColor" ? `<span class="swatch" style="background:${value}"></span>` : "";
+        return `<button type="button" class="${selected ? "selected" : ""}" data-style-value="${value}">${swatch}<span>${value}</span></button>`;
+      }).join("");
+      const rect = (input.closest("[data-style-field]") || input).getBoundingClientRect();
+      const width = Math.max(160, Math.min(280, rect.width));
+      const menuHeight = Math.min(244, values.length * 32 + 8);
+      const top = rect.bottom + 6 + menuHeight > window.innerHeight - 8 ? Math.max(8, rect.top - menuHeight - 6) : rect.bottom + 6;
+      const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+      menu.style.left = `${Math.round(left)}px`;
+      menu.style.top = `${Math.round(top)}px`;
+      menu.style.width = `${Math.round(width)}px`;
+      menu.style.maxHeight = `${Math.round(menuHeight)}px`;
+      menu.classList.remove("hidden");
+    }
+    function closeStyleMenu() { const menu = $("#style-menu"); menu?.classList.add("hidden"); if (menu) menu.innerHTML = ""; styleMenuInput = null; }
+    function previewStylePresetInputFromTarget(target) {
+      const input = target?.closest?.("[data-style][data-preset]");
+      if (input) return input;
+      return target?.closest?.("[data-style-field]")?.querySelector?.("[data-style][data-preset]") || null;
+    }
+    function showPreviewStyleHelp(icon) {
+      const tooltip = $("#style-help-tooltip");
+      const label = icon?.dataset?.styleHelp?.trim();
+      if (!tooltip || !label) return;
+      tooltip.textContent = label;
+      tooltip.classList.remove("hidden");
+      tooltip.style.visibility = "hidden";
+      const anchorRect = icon.getBoundingClientRect();
+      const tooltipRect = tooltip.getBoundingClientRect();
+      const left = Math.max(8, Math.min(window.innerWidth - tooltipRect.width - 8, anchorRect.left + anchorRect.width / 2 - tooltipRect.width / 2));
+      const top = Math.max(8, anchorRect.top - tooltipRect.height - 7);
+      tooltip.style.left = `${Math.round(left)}px`;
+      tooltip.style.top = `${Math.round(top)}px`;
+      tooltip.style.visibility = "visible";
+    }
+    function hidePreviewStyleHelp() { $("#style-help-tooltip")?.classList.add("hidden"); }
+    function snapshot() { return JSON.stringify(changes); }
+    function apply(showBaseline = false) {
+      const target = document.querySelector(`[data-target="${selected}"]`); target.setAttribute("style", baseline.style); target.textContent = baseline.text;
+      if (!showBaseline) Object.entries(changes).forEach(([name, value]) => { if (name === "text") target.textContent = value; else target.style.setProperty(camel(name), name === "fontSize" || name === "padding" || name === "borderRadius" ? `${value}px` : value, "important"); });
+      ["fontSize", "fontWeight", "color", "backgroundColor", "opacity", "padding", "borderRadius", "textAlign"].forEach((name) => document.querySelectorAll(`[data-style="${name}"]`).forEach((input) => { input.value = changes[name] ?? baseline[name]; })); $("#text-edit").value = changes.text ?? baseline.text;
+    }
+    function updateStyleCompareControl() { const button = $("[data-compare]"); if (!button) return; const enabled = Boolean(baseline && Object.keys(changes).length); button.disabled = !enabled; button.classList.toggle("active", enabled && comparingBaseline); button.title = !enabled ? "试改前后" : comparingBaseline ? "查看试改后" : "查看试改前"; button.setAttribute("aria-label", button.title); }
+    function normalizePreviewStyleValue(name, value) { const raw = String(value ?? "").trim(); if (name === "text" || name === "textAlign") return raw; if (["fontSize", "padding", "borderRadius"].includes(name)) { const numeric = Number.parseFloat(raw); return Number.isFinite(numeric) && numeric >= 0 ? numeric : null; } if (name === "fontWeight") { const numeric = Number.parseFloat(raw); return Number.isFinite(numeric) ? Math.max(100, Math.min(900, Math.round(numeric / 100) * 100)) : null; } if (name === "opacity") { const numeric = raw.endsWith("%") ? Number.parseFloat(raw) / 100 : Number.parseFloat(raw); return Number.isFinite(numeric) ? Math.max(0, Math.min(1, numeric)) : null; } if (["color", "backgroundColor"].includes(name)) { if (/^#[0-9a-f]{3}$/i.test(raw)) return `#${raw.slice(1).split("").map((part) => `${part}${part}`).join("")}`; return /^#[0-9a-f]{6}$/i.test(raw) ? raw.toLowerCase() : null; } return raw; }
+    function change(name, value) { const normalized = normalizePreviewStyleValue(name, value); if (normalized === null) return; const before = snapshot(); const base = baseline[name === "text" ? "text" : name]; if (String(normalized) === String(base)) delete changes[name]; else changes[name] = normalized; if (before !== snapshot()) { history.push(before); future = []; comparingBaseline = false; apply(); updateStyleCompareControl(); } }
+    function restore(close = false) { closeStyleMenu(); if (!baseline) return; const target = document.querySelector(`[data-target="${selected}"]`); target.setAttribute("style", baseline.style); target.textContent = baseline.text; comparingBaseline = false; if (close) { document.querySelectorAll(".target").forEach((node) => node.classList.remove("is-selected")); composer.classList.add("hidden"); composer.classList.remove("is-visible"); showPanel(); selected = null; baseline = null; } updateStyleCompareControl(); }
+    function save() { const comment = $("#comment").value.trim(); const edits = Object.entries(changes).map(([name, after]) => `${name === "text" ? "文本内容" : camel(name)} ${baseline[name === "text" ? "text" : name]} → ${after}`); if (!comment && !edits.length) return; pendingClearAll = false; items.push({ id: Date.now(), target: selected, type: "dom", adjustment: edits.length > 0, text: comment || edits.join("；"), author: "我", time: "刚刚", edits, previewImage: domPreview(selected) }); $("#comment").value = ""; restore(true); setMode("read"); renderList(); }
+    function camel(name) { return name.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`); }
+    function agentAttachmentMap() { return new Map(items.filter((item) => item.type === "screenshot").map((item, index) => [item.id, `A${index + 1}`])); }
+    function markdown() { const attachments = agentAttachmentMap(); const activeRound = collabRounds.find((round) => round.roundId === collabRoomId); const source = items.map((item, index) => { const target = targets[item.target]; const type = item.type === "screenshot" ? "截图" : item.adjustment ? "DOM 试改" : "DOM 评估"; const head = `## ${index + 1} [${type}] ${item.text}`; const details = [`- selector: \`${target.selector}\``]; if (item.edits?.length) details.push(`- 修改: ${item.edits.join("；")}`); if (item.type === "screenshot") details.push(`- 截图: ${attachments.get(item.id)}`); if (format === "full") { details.push(`- 目标: ${target.label}`); details.push(`- 页面: /weekly-pulse`); details.push(`- 说明: ${item.text}`); } return `${head}\n${details.join("\n")}`; }); const context = [`- 页面 URL: ${location.href.split("#")[0]}`, "- 评审空间: Metric 评审空间", activeRound ? `- 批注轮次: ${activeRound.roundName} (${activeRound.roundId})` : ""].filter(Boolean).join("\n"); return `# 前端修改任务\n${format === "compact" ? "只改下列项，勿动其他。" : "仅处理以下标注项。"}\n\n${context}\n\n${source.join("\n\n")}\n`; }
+    function openAgent() { agentMarkdownDraft = null; $("#markdown").value = markdown(); const attachments = $("#agent-attachments"); attachments.innerHTML = items.filter((item) => item.type === "screenshot").map((item) => `<img data-preview="${item.id}" src="${item.previewImage}" alt="截图批注附件">`).join(""); $("#agent-modal").classList.remove("hidden"); $("#agent-modal").classList.add("is-visible"); }
+    function positionPreviewShotbar(options = {}) { const bar = document.querySelector(".shot-bar"); const overlay = $("#shot-overlay"); if (!bar || overlay.classList.contains("hidden")) return; const barRect = bar.getBoundingClientRect(); if (!barRect.width || !barRect.height) return; const margin = 8; const gap = 8; let workbarRect = workbar.getBoundingClientRect(); let above = workbarRect.top - barRect.height - gap; if (options.ensureAbove && above < margin) { if (!previewShotbarOrigin) previewShotbarOrigin = ["left","top","transform"].reduce((origin, property) => { origin[property] = { value: workbar.style.getPropertyValue(property), priority: workbar.style.getPropertyPriority(property) }; return origin; }, {}); const shiftedTop = Math.max(margin, Math.min(window.innerHeight - workbarRect.height - margin, margin + barRect.height + gap)); workbar.style.setProperty("left", `${Math.round(workbarRect.left)}px`, "important"); workbar.style.setProperty("top", `${Math.round(shiftedTop)}px`, "important"); workbar.style.setProperty("transform", "none", "important"); workbarRect = workbar.getBoundingClientRect(); above = workbarRect.top - barRect.height - gap; } const left = Math.max(margin, Math.min(window.innerWidth - barRect.width - margin, workbarRect.left + (workbarRect.width - barRect.width) / 2)); const below = workbarRect.bottom + gap; const top = above >= margin ? above : Math.max(margin, Math.min(window.innerHeight - barRect.height - margin, below)); bar.style.setProperty("left", `${Math.round(left)}px`, "important"); bar.style.setProperty("top", `${Math.round(top)}px`, "important"); bar.style.setProperty("right", "auto", "important"); bar.style.setProperty("bottom", "auto", "important"); }
+    function restorePreviewWorkbarAfterShot() { if (!previewShotbarOrigin) return; Object.entries(previewShotbarOrigin).forEach(([property, state]) => { if (state.value) workbar.style.setProperty(property, state.value, state.priority); else workbar.style.removeProperty(property); }); previewShotbarOrigin = null; }
+    function setPreviewShotTool(nextTool) { const next = ["box","arrow","pen"].includes(nextTool) ? nextTool : "box"; shotTool = !shotRegion && next !== "box" ? "box" : next; document.querySelectorAll("[data-shot-tool]").forEach((button) => { const active = button.dataset.shotTool === shotTool; button.classList.toggle("active", active); button.classList.toggle("is-primary", active); }); }
+    function resetPreviewShot() { shotStart = null; shotRegion = null; shotDraft = null; shotAnnotations = []; $("#shot-comment").value = ""; $("#shot-popover").classList.add("hidden"); $("#shot-popover").classList.remove("is-visible"); setPreviewShotTool("box"); drawShotSelection(); }
+    function openShot() { restore(true); $("#shot-viewer").classList.add("hidden"); setMode("shot"); $("#shot-overlay").classList.remove("hidden"); resetPreviewShot(); requestAnimationFrame(() => positionPreviewShotbar({ ensureAbove: true })); }
+    function closeShot() { $("#shot-overlay").classList.add("hidden"); resetPreviewShot(); restorePreviewWorkbarAfterShot(); setMode("read"); }
+    function downloadPreviewAgentPackage() { const payload = { format: "vfs-agent-feedback-preview", exportedAt: new Date().toISOString(), markdown: agentMarkdownDraft ?? markdown(), screenshots: items.filter((item) => item.type === "screenshot").map((item) => ({ id: item.id, image: item.previewImage })) }; const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); const link = document.createElement("a"); link.href = url; link.download = "agent-feedback-preview.json"; link.click(); setTimeout(() => URL.revokeObjectURL(url), 0); }
+    function previewShotBounds(draft) { const start = draft?.start || { x: 0, y: 0 }; const end = draft?.end || start; return { left: Math.min(start.x,end.x), top: Math.min(start.y,end.y), width: Math.abs(end.x-start.x), height: Math.abs(end.y-start.y), startX:start.x, startY:start.y, endX:end.x, endY:end.y }; }
+    function clampPreviewShotPoint(point) { if (!shotRegion) return point; return { x: Math.max(shotRegion.left,Math.min(shotRegion.left+shotRegion.width,point.x)), y: Math.max(shotRegion.top,Math.min(shotRegion.top+shotRegion.height,point.y)) }; }
+    function previewArrowPath(start,end) { const angle=Math.atan2(end.y-start.y,end.x-start.x); const head=9; const h1={x:end.x-head*Math.cos(angle-Math.PI/6),y:end.y-head*Math.sin(angle-Math.PI/6)}; const h2={x:end.x-head*Math.cos(angle+Math.PI/6),y:end.y-head*Math.sin(angle+Math.PI/6)}; return `M ${start.x} ${start.y} L ${end.x} ${end.y} M ${end.x} ${end.y} L ${h1.x} ${h1.y} M ${end.x} ${end.y} L ${h2.x} ${h2.y}`; }
+    function previewShotShapeMarkup(item) { if (item.tool === "pen") return `<polyline points="${(item.points||[]).map((point)=>`${point.x},${point.y}`).join(" ")}"></polyline>`; return `<path d="${previewArrowPath(item.start,item.end)}"></path>`; }
+    function drawShotSelection() { const node=$("#shot-selection"); const drawing=$("#shot-drawing"); const draftRegion=shotDraft?.tool==="region"?previewShotBounds(shotDraft):null; const region=shotRegion||draftRegion; if(region){node.style.left=`${region.left}px`;node.style.top=`${region.top}px`;node.style.width=`${region.width}px`;node.style.height=`${region.height}px`;node.classList.remove("hidden");}else{node.classList.add("hidden");} const shapes=[...shotAnnotations,...(shotDraft&&shotDraft.tool!=="region"?[shotDraft]:[])]; drawing.setAttribute("viewBox",`0 0 ${window.innerWidth} ${window.innerHeight}`); drawing.innerHTML=shapes.map(previewShotShapeMarkup).join(""); drawing.classList.toggle("hidden",!shapes.length); $("#shot-finish").disabled=!shotRegion; }
+    function openPreviewShotComposer() { if(!shotRegion)return; const popover=$("#shot-popover"); const width=320; const preferredLeft=shotRegion.left+shotRegion.width+12; const left=preferredLeft+width<window.innerWidth-12?preferredLeft:Math.max(12,shotRegion.left-width-12); const top=Math.max(76,Math.min(window.innerHeight-170,shotRegion.top)); popover.style.setProperty("left",`${left}px`,"important"); popover.style.setProperty("right","auto","important"); popover.style.setProperty("top",`${top}px`,"important"); popover.classList.remove("hidden"); popover.classList.add("is-visible"); $("#shot-comment").focus(); }
+    function openShotViewer(record) { if (!record?.previewImage) return; $("#shot-viewer-image").src = record.previewImage; $("#shot-viewer").classList.remove("hidden"); }
+    function focusScreenshot(record) { const bounds = record?.bounds; if (!bounds) return; window.scrollTo({ top: record.captureScrollY || 0, behavior: "smooth" }); const focus = $("#shot-focus"); const show = () => { focus.style.left = `${Math.max(8, Math.min(window.innerWidth - 370, bounds.left))}px`; focus.style.top = `${Math.max(76, bounds.top)}px`; focus.style.width = `${bounds.width}px`; focus.style.height = `${bounds.height}px`; focus.classList.remove("hidden"); setTimeout(() => focus.classList.add("hidden"), 1300); }; requestAnimationFrame(show); }
+    function saveShot() { if (!shotRegion) return; const text = $("#shot-comment").value.trim() || "截图区域需要调整。"; pendingClearAll = false; const bounds={...shotRegion}; const annotations=shotAnnotations.map((item)=>({tool:item.tool,start:item.start?{...item.start}:undefined,end:item.end?{...item.end}:undefined,points:(item.points||[]).map((point)=>({...point}))})); items.push({ id: Date.now(), target: "chart", type: "screenshot", text, author: "我", time: "刚刚", bounds, annotations, captureScrollY: window.scrollY, previewImage: shotPreview(bounds,"box",[],annotations) }); closeShot(); renderList(); }
+    items.filter((item) => item.type === "dom").forEach((item) => { item.previewImage = domPreview(item.target); });
+    items[2].bounds = { left: 426, top: 310, width: 210, height: 94, startX: 426, startY: 310, endX: 580, endY: 244 };
+    items[2].captureScrollY = 0;
+    items[2].previewImage = shotPreview(items[2].bounds, "arrow");
+    document.addEventListener("click", (event) => {
+      if (pendingDeleteId !== null && !event.target.closest("[data-delete]")) { pendingDeleteId = null; requestAnimationFrame(renderList); }
+      const styleValue = event.target.closest("[data-style-value]");
+      if (styleValue && styleMenuInput) { event.preventDefault(); styleMenuInput.value = styleValue.dataset.styleValue; change(styleMenuInput.dataset.style, styleMenuInput.value); styleMenuInput.focus(); closeStyleMenu(); return; }
+      if (!event.target.closest("#collab-account-menu, [data-collab-account]")) $("#collab-account-menu").classList.add("hidden");
+      if (event.target.closest("[data-collab-login]")) { if (collabLoginBusy) return; collabLoginBusy = true; renderCollabPreview(); setTimeout(() => { collabLoginBusy = false; collabLoggedIn = true; if (!collabMembers.length) collabMembers = [collabUserName]; renderCollabPreview(); }, 720); return; }
+      if (event.target.closest("[data-collab-account]")) { $("#collab-account-menu").classList.toggle("hidden"); return; }
+      if (event.target.closest("[data-collab-switch]")) { collabLoggedIn = false; collabMembers = []; $("#collab-account-menu").classList.add("hidden"); renderCollabPreview(); return; }
+      if (event.target.closest("[data-collab-logout]")) { collabLoggedIn = false; collabMembers = []; $("#collab-account-menu").classList.add("hidden"); renderCollabPreview(); return; }
+      if (event.target.closest("[data-room-create]")) { if (collabBusyAction) return; collabBusyAction = "create"; renderCollabPreview(); setTimeout(() => { collabBusyAction = ""; createPreviewRound(); }, 820); return; }
+      if (event.target.closest("[data-round-copy]")) { if (!collabRoomId) return; navigator.clipboard?.writeText(`飞标批注轮次：${collabRoomId}`); collabSyncStatus = "轮次 ID 已复制"; renderCollabPreview(); setTimeout(() => { collabSyncStatus = ""; renderCollabPreview(); }, 1200); return; }
+      if (event.target.closest("[data-room-join]")) { if (collabBusyAction) return; const inputRoundId = $("#room-input").value.trim().toUpperCase(); if (!inputRoundId) { collabSyncStatus = "请输入轮次 ID"; renderCollabPreview(); return; } collabBusyAction = "join"; renderCollabPreview(); setTimeout(() => { collabBusyAction = ""; collabLoggedIn = true; if (!collabRoundItems[inputRoundId]) { collabRounds.push({ roundId: inputRoundId, roundName: "加入的批注轮次" }); collabRoundItems[inputRoundId] = []; } $("#room-input").value = ""; switchPreviewRound(inputRoundId); }, 820); return; }
+      if (event.target.closest("[data-room-refresh]")) { if (!collabRoomId || collabBusyAction) return; collabBusyAction = "refresh"; collabSyncing = true; collabSyncStatus = "正在同步当前轮次…"; renderCollabPreview(); setTimeout(() => { collabBusyAction = ""; collabSyncing = false; collabSyncStatus = "当前轮次已是最新"; renderCollabPreview(); setTimeout(() => { collabSyncStatus = ""; renderCollabPreview(); }, 1600); }, 820); return; }
+      if (event.target.closest("[data-workspace-chat]")) { collabSyncStatus = "将打开对应飞书评审群"; renderCollabPreview(); return; }
+      if (event.target.closest("[data-workspace-base]")) { collabSyncStatus = "将打开对应批注数据表"; renderCollabPreview(); return; }
+      if (event.target.closest("[data-feishu-sync]")) { if (feishuDocumentBusy) return; feishuDocumentBusy = true; collabSyncStatus = "正在同步飞书文档…"; renderCollabPreview(); setTimeout(() => { feishuDocumentBusy = false; collabSyncStatus = collabRoomId ? "当前轮次文档已更新" : "飞书文档已更新"; renderCollabPreview(); setTimeout(() => { collabSyncStatus = ""; renderCollabPreview(); }, 1800); }, 1100); return; }
+      const action = event.target.closest("[data-action]"); if (action) { if (action.dataset.action === "agent") openAgent(); if (action.dataset.action === "shot") openShot(); return; }
+      if (event.target.closest("[data-theme-toggle]")) { setTheme(themeMode === "light" ? "dark" : "light"); return; }
+      const target = event.target.closest("[data-target]"); if (target) { event.preventDefault(); startSelection(target.dataset.target); return; }
+      const modeButton = event.target.closest("[data-mode]"); if (modeButton) { if (modeButton.dataset.mode === "read" && mode === "read") { markersHidden = !markersHidden; updateReadControl(); updatePins(); return; } setMode(modeButton.dataset.mode); return; }
+      const tabButton = event.target.closest("[data-tab]"); if (tabButton) { setTab(tabButton.dataset.tab); return; }
+      if (event.target.closest("[data-agent-close]")) { $("#agent-modal").classList.add("hidden"); $("#agent-modal").classList.remove("is-visible"); return; }
+      if (event.target.closest("#agent-export")) { downloadPreviewAgentPackage(); return; }
+      if (event.target.closest("[data-viewer-close]") || event.target.id === "shot-viewer") { $("#shot-viewer").classList.add("hidden"); return; }
+      const preview = event.target.closest("[data-preview]"); if (preview) { openShotViewer(findRecord(preview.dataset.preview)); return; }
+      const edit = event.target.closest("[data-edit]"); if (edit) { const record = findRecord(edit.dataset.edit); const next = record ? window.prompt("编辑批注", record.text) : null; if (next?.trim()) { record.text = next.trim(); renderList(); } return; }
+      if (event.target.closest("[data-clear-all]")) { if (!items.length) return; if (pendingClearAll) { items = []; pendingClearAll = false; pendingDeleteId = null; } else { pendingClearAll = true; } renderList(); return; }
+      const deletion = event.target.closest("[data-delete]"); if (deletion) { pendingClearAll = false; const id = Number(deletion.dataset.delete); if (pendingDeleteId === id) { items = items.filter((item) => item.id !== id); pendingDeleteId = null; } else { pendingDeleteId = id; } renderList(); return; }
+      const focus = event.target.closest("[data-focus]"); if (focus) { const record = findRecord(focus.dataset.recordId); if (record?.type === "screenshot") { focusScreenshot(record); return; } const node = document.querySelector(`[data-target="${focus.dataset.focus}"]`); node.scrollIntoView({ behavior: "smooth", block: "center" }); node.classList.add("is-selected"); setTimeout(() => node.classList.remove("is-selected"), 900); return; }
+      if (event.target.closest("#cancel")) { restore(true); return; }
+      if (event.target.closest("#save")) { save(); return; }
+      if (event.target.closest("#shot-exit")) { closeShot(); return; }
+      if (event.target.closest("#shot-cancel")) { $("#shot-popover").classList.add("hidden"); $("#shot-popover").classList.remove("is-visible"); $("#shot-comment").value=""; return; }
+      if (event.target.closest("#shot-finish") && shotRegion) { openPreviewShotComposer(); return; }
+      if (event.target.closest("#shot-save")) { saveShot(); return; }
+      const shotToolButton = event.target.closest("[data-shot-tool]"); if (shotToolButton) { setPreviewShotTool(shotToolButton.dataset.shotTool); return; }
+      if (event.target.closest("#shot-recapture")) { resetPreviewShot(); return; }
+      if (event.target.closest("[data-toggle-panel]")) { panel.classList.contains("hidden") ? showPanel() : hidePanel(true); return; }
+      if (event.target.closest("[data-close-panel]")) { hidePanel(true); return; }
+      if (event.target.closest("[data-panel-launcher]")) { showPanel(); return; }
+      if (event.target.closest("[data-workbench-close]")) { closeWorkbench(); return; }
+      if (event.target.closest("[data-compare]") && baseline && Object.keys(changes).length) { comparingBaseline = !comparingBaseline; apply(comparingBaseline); updateStyleCompareControl(); return; }
+      const formatButton = event.target.closest("[data-format]"); if (formatButton) { format = formatButton.dataset.format; agentMarkdownDraft = null; document.querySelectorAll("[data-format]").forEach((button) => { const active = button.dataset.format === format; button.classList.toggle("active", active); button.classList.toggle("is-active", active); }); $("#markdown").value = markdown(); return; }
+      if (event.target.closest("#copy")) { navigator.clipboard?.writeText(agentMarkdownDraft ?? markdown()); event.target.closest("#copy").title = "已复制"; setTimeout(() => event.target.closest("#copy").title = "复制给 Agent", 900); }
+    });
+    document.addEventListener("focusin", (event) => { const input = event.target.closest("[data-style][data-preset]"); if (input && baseline) openStyleMenu(input); });
+    document.addEventListener("pointerdown", (event) => { if (event.target.closest("#style-menu")) return; const trigger = event.target.closest("[data-style-preset-trigger]"); const input = previewStylePresetInputFromTarget(event.target); if (input && baseline) { if (trigger) event.preventDefault(); openStyleMenu(input); return; } closeStyleMenu(); });
+    document.addEventListener("pointerover", (event) => { const icon = event.target.closest("[data-style-help]"); if (icon) showPreviewStyleHelp(icon); });
+    document.addEventListener("pointerout", (event) => { const icon = event.target.closest("[data-style-help]"); if (!icon) return; if (event.relatedTarget && icon.contains(event.relatedTarget)) return; hidePreviewStyleHelp(); });
+    function handlePreviewStyleChange(event) { if (event.type === "change" && event.target.matches("[data-round-select]")) { switchPreviewRound(event.target.value); return; } const input = event.target.closest("[data-style]"); if (input && baseline) change(input.dataset.style, input.value); if (event.target.id === "text-edit" && baseline) change("text", event.target.value); if (event.target.id === "markdown") agentMarkdownDraft = event.target.value; }
+    document.addEventListener("input", handlePreviewStyleChange);
+    document.addEventListener("change", handlePreviewStyleChange);
+    $("#shot-overlay").addEventListener("pointerdown", (event) => { if (event.target.closest(".shot-bar") || event.target.closest("#shot-popover")) return; const raw={x:event.clientX,y:event.clientY}; const selecting=!shotRegion||shotTool==="box"; const start=selecting?raw:clampPreviewShotPoint(raw); shotStart=start; shotDraft={tool:selecting?"region":shotTool,start,end:start,points:[start]}; if(selecting){shotRegion=null;shotAnnotations=[];$("#shot-popover").classList.add("hidden");} $("#shot-overlay").setPointerCapture?.(event.pointerId); drawShotSelection(); });
+    $("#shot-overlay").addEventListener("pointermove", (event) => { if (!shotStart||!shotDraft) return; const raw={x:event.clientX,y:event.clientY}; const point=shotDraft.tool==="region"?raw:clampPreviewShotPoint(raw); shotDraft.end=point; if(shotDraft.tool==="pen")shotDraft.points.push(point); drawShotSelection(); });
+    $("#shot-overlay").addEventListener("pointerup", (event) => { if(!shotDraft)return; const raw={x:event.clientX,y:event.clientY}; const point=shotDraft.tool==="region"?raw:clampPreviewShotPoint(raw); shotDraft.end=point; if(shotDraft.tool==="pen")shotDraft.points.push(point); const bounds=previewShotBounds(shotDraft); const meaningful=shotDraft.tool==="region"?bounds.width>=12&&bounds.height>=12:shotDraft.tool==="arrow"?Math.hypot(shotDraft.end.x-shotDraft.start.x,shotDraft.end.y-shotDraft.start.y)>=8:(shotDraft.points||[]).length>2; if(meaningful&&shotDraft.tool==="region"){shotRegion=bounds;shotDraft=null;setPreviewShotTool("arrow");}else if(meaningful){shotAnnotations.push(shotDraft);shotDraft=null;}else{shotDraft=null;} shotStart=null;drawShotSelection(); });
+    const workbar = document.querySelector(".workbar"); const grip = document.querySelector(".grip"); let drag = null;
+    grip.addEventListener("pointerdown", (event) => { const rect = workbar.getBoundingClientRect(); if (!$("#shot-overlay").classList.contains("hidden")) previewShotbarOrigin = null; drag = { id: event.pointerId, x: event.clientX - rect.left, y: event.clientY - rect.top }; workbar.style.setProperty("left", `${rect.left}px`, "important"); workbar.style.setProperty("top", `${rect.top}px`, "important"); workbar.style.setProperty("transform", "none", "important"); grip.setPointerCapture?.(event.pointerId); event.preventDefault(); });
+    window.addEventListener("pointermove", (event) => { if (!drag || event.pointerId !== drag.id) return; const rect = workbar.getBoundingClientRect(); const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, event.clientX - drag.x)); const reserve = $("#shot-overlay").classList.contains("hidden") ? 8 : (document.querySelector(".shot-bar")?.offsetHeight || 44) + 16; const top = Math.max(reserve, Math.min(window.innerHeight - rect.height - 8, event.clientY - drag.y)); workbar.style.setProperty("left", `${left}px`, "important"); workbar.style.setProperty("top", `${top}px`, "important"); positionPreviewShotbar(); });
+    window.addEventListener("pointerup", (event) => { if (drag && event.pointerId === drag.id) { drag = null; positionPreviewShotbar(); } });
+    window.addEventListener("resize", () => positionPreviewShotbar({ ensureAbove: true }));
+    const panelHandle = document.querySelector("[data-panel-handle]"); let panelDrag = null;
+    panelHandle.addEventListener("pointerdown", (event) => { const rect = panel.getBoundingClientRect(); panelDrag = { id: event.pointerId, x: event.clientX - rect.left, y: event.clientY - rect.top }; panel.style.left = `${rect.left}px`; panel.style.top = `${rect.top}px`; panel.style.right = "auto"; panelHandle.setPointerCapture?.(event.pointerId); event.preventDefault(); event.stopPropagation(); });
+    window.addEventListener("pointermove", (event) => { if (!panelDrag || event.pointerId !== panelDrag.id) return; const rect = panel.getBoundingClientRect(); const left = Math.max(8, Math.min(window.innerWidth - rect.width - 8, event.clientX - panelDrag.x)); const top = Math.max(78, Math.min(window.innerHeight - rect.height - 8, event.clientY - panelDrag.y)); panel.style.left = `${left}px`; panel.style.top = `${top}px`; });
+    window.addEventListener("pointerup", (event) => { if (panelDrag && event.pointerId === panelDrag.id) panelDrag = null; });
+    let panelResize = null;
+    document.querySelectorAll("[data-panel-resize]").forEach((handle) => {
+      handle.addEventListener("pointerdown", (event) => {
+        const rect = panel.getBoundingClientRect();
+        panelResize = { id: event.pointerId, direction: handle.dataset.panelResize, rect: { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom, width: rect.width, height: rect.height } };
+        panel.style.left = `${Math.round(rect.left)}px`;
+        panel.style.top = `${Math.round(rect.top)}px`;
+        panel.style.right = "auto";
+        panel.style.bottom = "auto";
+        panel.style.width = `${Math.round(rect.width)}px`;
+        panel.style.height = `${Math.round(rect.height)}px`;
+        panel.classList.add("is-resizing");
+        handle.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+        event.stopPropagation();
+      });
+    });
+    window.addEventListener("pointermove", (event) => {
+      if (!panelResize || event.pointerId !== panelResize.id) return;
+      const margin = 8;
+      const viewportWidth = Math.max(260, window.innerWidth - margin * 2);
+      const viewportHeight = Math.max(320, window.innerHeight - margin * 2);
+      const minWidth = Math.min(312, viewportWidth);
+      const minHeight = Math.min(360, viewportHeight);
+      const { direction, rect } = panelResize;
+      let left = rect.left; let right = rect.right; let top = rect.top; let bottom = rect.bottom;
+      if (direction.includes("w")) left = Math.max(margin, Math.min(right - minWidth, event.clientX));
+      if (direction.includes("e")) right = Math.max(left + minWidth, Math.min(window.innerWidth - margin, event.clientX));
+      if (direction.includes("n")) top = Math.max(margin, Math.min(bottom - minHeight, event.clientY));
+      if (direction.includes("s")) bottom = Math.max(top + minHeight, Math.min(window.innerHeight - margin, event.clientY));
+      panel.style.left = `${Math.round(left)}px`;
+      panel.style.top = `${Math.round(top)}px`;
+      panel.style.width = `${Math.round(Math.max(minWidth, right - left))}px`;
+      panel.style.height = `${Math.round(Math.max(minHeight, bottom - top))}px`;
+      event.preventDefault();
+    });
+    window.addEventListener("pointerup", (event) => { if (panelResize && event.pointerId === panelResize.id) { panelResize = null; panel.classList.remove("is-resizing"); } });
+    window.addEventListener("pointercancel", (event) => { if (panelResize && event.pointerId === panelResize.id) { panelResize = null; panel.classList.remove("is-resizing"); } });
+    updateReadControl();
+    updatePins();
+    renderCollabPreview();
+    renderList();
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# 依赖与打包产物
+node_modules/
+*.vsix
+*.zip
+*.log
+
+# 编辑器
+.vscode/
+.idea/
+
+# 桥接扩展的运行产物
+.feibiao/

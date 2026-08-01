@@ -1,0 +1,48 @@
+{
+  "manifest_version": 3,
+  "name": "飞标-H5页面标注助手",
+  "version": "1.4.12",
+  "version_name": "V1.4.12-协同批注版",
+  "minimum_chrome_version": "114",
+  "description": "协作标注网页问题,一键整理交给 Agent 修改",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_title": "打开飞标",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "unlimitedStorage",
+    "tabs",
+    "webNavigation"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://magic.solutionsuite.cn/api/faas/vpYFBd0FLU8*"
+      ],
+      "js": [
+        "login-callback.js"
+      ],
+      "run_at": "document_start"
+    }
+  ]
+}
