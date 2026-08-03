@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飞标桌面版 v1.0</title>
+<style>
+  :root {
+    --bg:#0f1214; --bg2:#171b1e; --ink:#e6e9ea; --muted:#8b9499;
+    --rule:#2a3033; --accent:#6fb3a8; --accent2:#c8a15a; --err:#d97a6c;
+    --mono:"SFMono-Regular",Menlo,monospace;
+    --sans:"PingFang SC","Noto Sans CJK SC",-apple-system,sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans);
+    font-size:14px; line-height:1.6; padding:18px; -webkit-font-smoothing:antialiased; }
+  h1 { font-size:1.05rem; margin:0 0 2px; font-weight:700; }
+  .sub { color:var(--muted); font-size:0.76rem; font-family:var(--mono); margin:0 0 16px; letter-spacing:.04em; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; }
+  button { font-family:var(--sans); font-size:0.82rem; padding:9px 10px; border-radius:6px;
+    border:1px solid var(--rule); background:var(--bg2); color:var(--ink); cursor:pointer; transition:.15s; }
+  button:hover { border-color:var(--accent); color:var(--accent); }
+  button.primary { border-color:var(--accent); color:var(--accent); }
+  .perms { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+  .chip { font-family:var(--mono); font-size:0.68rem; padding:4px 8px; border-radius:20px;
+    border:1px solid var(--rule); color:var(--muted); }
+  .chip.on { border-color:var(--accent); color:var(--accent); }
+  .chip.off { border-color:var(--err); color:var(--err); }
+  .log { background:#0a0d0e; border:1px solid var(--rule); border-radius:6px; padding:10px;
+    font-family:var(--mono); font-size:0.72rem; color:var(--muted); height:270px; overflow:auto; white-space:pre-wrap; }
+  .log .ok { color:var(--accent); }
+  .log .bad { color:var(--err); }
+  .log .dim { color:#5b6468; }
+  /* 授权引导条 */
+  .banner { display:none; border:1px solid var(--err); background:rgba(217,122,108,.08);
+    border-radius:6px; padding:11px 12px; margin-bottom:14px; }
+  .banner.show { display:block; }
+  .banner .bt { color:var(--err); font-weight:700; font-size:0.84rem; margin-bottom:4px; }
+  .banner .bd { color:var(--muted); font-size:0.76rem; line-height:1.55; margin-bottom:9px; }
+  .banner .ba { display:flex; gap:8px; }
+  .banner button { font-size:0.78rem; padding:7px 10px; }
+  .banner button.go { border-color:var(--err); color:var(--err); }
+  /* 截图预览 */
+  .preview { display:none; margin-bottom:14px; }
+  .preview.show { display:block; }
+  .preview .pt { color:var(--muted); font-family:var(--mono); font-size:0.68rem;
+    letter-spacing:.04em; margin-bottom:6px; }
+  .preview img { max-width:100%; border:1px solid var(--rule); border-radius:6px; display:block; }
+</style>
+</head>
+<body>
+  <h1>飞标桌面版 <span style="color:var(--accent)">v1.0</span> 骨架</h1>
+  <p class="sub">ELECTRON · SWIFT SIDECAR · TRAE BRIDGE — 冒烟调试面板</p>
+
+  <div class="perms" id="perms">
+    <span class="chip" data-k="accessibility">辅助功能 —</span>
+    <span class="chip" data-k="screenCapture">屏幕录制 —</span>
+    <span class="chip" data-k="inputMonitoring">输入监控 —</span>
+  </div>
+
+  <div class="grid">
+    <button class="primary" id="btn-handshake">① 边车握手</button>
+    <button id="btn-perm">② 查权限</button>
+    <button id="btn-overlay">③ 进入框选</button>
+    <button id="btn-capture">④ 截图（占位选区）</button>
+    <button id="btn-text">⑤ 取文本仲裁</button>
+    <button id="btn-deliver">⑥ 交付到 Trae</button>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <div class="banner" id="perm-banner">
+    <div class="bt">需要「屏幕录制」权限</div>
+    <div class="bd">当前返回的是占位图（stub），说明本应用尚未获得屏幕录制授权。请在「系统设置 → 隐私与安全性 → 屏幕录制」中勾选本应用，然后<b>完全退出并重启</b>应用（TCC 权限按启动程序归属，需重启生效）。</div>
+    <div class="ba">
+      <button class="go" id="btn-open-settings">打开系统设置</button>
+      <button id="btn-retry-capture">已授权，重试截图</button>
+    </div>
+  </div>
+
+  <div class="preview" id="preview">
+    <div class="pt" id="preview-meta">PREVIEW</div>
+    <img id="preview-img" alt="截图预览">
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

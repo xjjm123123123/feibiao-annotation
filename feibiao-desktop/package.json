@@ -1,0 +1,25 @@
+{
+  "name": "feibiao-desktop",
+  "version": "1.0.0",
+  "private": true,
+  "description": "飞标桌面版 v1.0 骨架：Electron 主进程 + Swift 边车 + IPC 契约 + Trae Bridge 连通",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:sandboxed": "electron . --no-sandbox --disable-gpu --user-data-dir=/tmp/feibiao-ud",
+    "sidecar:build": "swift build --package-path sidecar -c release",
+    "sidecar:build:debug": "swift build --package-path sidecar",
+    "smoke": "node scripts/smoke.js",
+    "smoke:bridge": "node scripts/smoke.js --only=bridge",
+    "smoke:sidecar": "node scripts/smoke.js --only=sidecar",
+    "test": "node test/integration.js && node test/main-ipc.js",
+    "test:integration": "node test/integration.js",
+    "test:main": "node test/main-ipc.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0"
+  }
+}

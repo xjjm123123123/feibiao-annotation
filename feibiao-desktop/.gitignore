@@ -1,0 +1,21 @@
+# 依赖
+node_modules/
+
+# Electron 构建产物
+dist/
+out/
+
+# Swift 边车构建产物
+sidecar/.build/
+sidecar/.swiftpm/
+*.o
+*.swiftmodule
+
+# 运行期产物
+*.log
+.feibiao/
+.DS_Store
+
+# 本地环境
+.env
+.env.local
